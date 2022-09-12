@@ -1,0 +1,42 @@
+# See https://pre-commit.com for more information
+# See https://pre-commit.com/hooks.html for more hooks
+repos:
+  - repo: https://github.com/asottile/pyupgrade
+    rev: v2.32.0
+    hooks:
+      - id: pyupgrade
+        name: pyupgrade
+        description: Run PyUpgrade on Python code.
+  - repo: https://github.com/pycqa/isort
+    rev: 5.10.1
+    hooks:
+      - id: isort
+        args: [--settings-path setup.cfg]
+        name: isort
+        description: Run import sorting (isort) on Python code.
+  - repo: local
+    hooks:
+      - id: brunette
+        name: brunette
+        description: Run Brunette on Python code (fork of Black).
+        entry: brunette --config=setup.cfg
+        language: system
+        types: [python]
+  - repo: https://gitlab.com/pycqa/flake8
+    rev: 3.8.3
+    hooks:
+      - id: flake8
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v3.1.0
+    hooks:
+      - id: requirements-txt-fixer
+      - id: check-ast
+      - id: check-yaml
+      - id: check-toml
+      - id: check-executables-have-shebangs
+      - id: check-docstring-first
+      - id: double-quote-string-fixer
+      - id: trailing-whitespace
+      - id: mixed-line-ending
+      - id: end-of-file-fixer
+      - id: fix-encoding-pragma

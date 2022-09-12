@@ -1,0 +1,11 @@
+.DS_Store
+output.*.jpg
+*.log*
+
+*.egg-info/
+
+.coverage
+coverage/
+
+__pycache__/
+docs/build/

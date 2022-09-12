@@ -1,0 +1,23 @@
+[run]
+branch = True
+source =
+    scoutbot
+omit =
+    setup.py
+
+[report]
+exclude_lines =
+    pragma: no cover
+    # NOCC
+    raise NotImplementedError
+    if __name__ == .__main__.:
+precision = 1
+ignore_errors = True
+omit =
+    tests/*
+
+[html]
+directory = ./coverage/html/
+
+[xml]
+output = ./coverage/coverage.xml
