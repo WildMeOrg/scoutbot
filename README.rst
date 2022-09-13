@@ -2,7 +2,7 @@
 Wild Me ScoutBot
 ================
 
-|Tests| |Wheel| |Docker| |ReadTheDocs| |Huggingface|
+|Tests| |Codecov| |Wheel| |Docker| |ReadTheDocs| |Huggingface|
 
 .. contents:: Quick Links
     :backlinks: none
@@ -37,7 +37,7 @@ Once Anaconda is installed, you will need an environment and the following packa
    conda install pip
 
    pip install -r requirements.txt
-   conda install pytorch torchvision -c pytorch-nightly
+   # conda install pytorch torchvision -c pytorch-nightly
 
 How to Run
 ----------
@@ -56,8 +56,16 @@ The application can also be built into a Docker image and hosted on Docker Hub.
 
 .. code:: bash
 
-    docker build . -t wildme/scoutbot:latest
-    docker push wildme/scoutbot:latest
+    export DOCKER_BUILDKIT=1
+    export DOCKER_CLI_EXPERIMENTAL=enabled
+
+    docker buildx create --name multi-arch-builder --use
+
+    docker buildx build \
+        -t wildme/scoutbot:latest \
+        --platform linux/amd64,linux/arm64 \
+        --push \
+        .
 
 To run:
 
@@ -115,6 +123,10 @@ The code base has been formatted by Brunette, which is a fork and more configura
     :target: https://github.com/WildMeOrg/scoutbot/actions/workflows/testing.yml
     :alt: GitHub CI
 
+.. |Codecov| image:: https://codecov.io/gh/WildMeOrg/houston/branch/develop/graph/badge.svg?token=M8MR14ED6V
+    :target: https://codecov.io/gh/WildMeOrg/houston
+    :alt: Codecov
+
 .. |Wheel| image:: https://github.com/WildMeOrg/scoutbot/actions/workflows/python-publish.yml/badge.svg
     :target: https://github.com/WildMeOrg/scoutbot/actions/workflows/python-publish.yml
     :alt: Python Wheel
@@ -124,9 +136,9 @@ The code base has been formatted by Brunette, which is a fork and more configura
     :alt: Docker
 
 .. |ReadTheDocs| image:: https://readthedocs.org/projects/scoutbot/badge/?version=latest
-    :target: https://scoutbot.readthedocs.io/en/latest/?badge=latest
+    :target: https://wildme-scoutbot.readthedocs.io/en/latest/?badge=latest
     :alt: ReadTheDocs
 
-.. |Huggingface| image:: https://img.shields.io/badge/HuggingFace-Running-yellow
+.. |Huggingface| image:: https://img.shields.io/badge/HuggingFace-Running-success
     :target: https://huggingface.co/spaces/WildMeOrg/scoutbot
     :alt: Huggingface

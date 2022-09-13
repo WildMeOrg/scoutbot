@@ -93,6 +93,6 @@ def test_loc_onnx_pipeline():
             if key == 'class_label':
                 assert getattr(output, key) == target.get(key)
             elif key == 'confidence':
-                assert abs(getattr(output, key) - target.get(key)) < 1e-4
+                assert abs(getattr(output, key) - target.get(key)) < 1e-2
             else:
                 assert abs(getattr(output, key) - target.get(key)) < 1e-1
