@@ -15,7 +15,10 @@ jobs:
         python-version: [3.8]
 
     steps:
-      - uses: actions/checkout@v2
+      - name: Checkout code
+        uses: nschloe/action-cached-lfs-checkout@v1.1.3
+        with:
+          include: "*.0.onnx"
 
       - uses: actions/setup-python@v2
         name: Install Python
@@ -36,7 +39,10 @@ jobs:
     name: Build source distribution
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - name: Checkout code
+        uses: nschloe/action-cached-lfs-checkout@v1.1.3
+        with:
+          include: "*.0.onnx"
 
       - uses: actions/setup-python@v2
         name: Install Python
