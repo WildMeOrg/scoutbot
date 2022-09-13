@@ -1,0 +1,17 @@
+brunette
+codecov
+coverage
+flake8
+ipython
+onnx
+pre-commit
+pytest
+pytest-benchmark[histogram]
+pytest-cov
+pytest-profiling
+pytest-random-order
+pytest-sugar
+pytest-xdist
+Sphinx>=5,<6
+sphinx_rtd_theme
+xdoctest

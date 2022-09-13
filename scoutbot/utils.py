@@ -5,8 +5,6 @@
 import logging
 from logging.handlers import TimedRotatingFileHandler
 
-import torch
-import yaml
 
 DAYS = 21
 
@@ -71,29 +69,3 @@ def init_logging():
     log = logging.getLogger(name)
 
     return log
-
-
-def init_config(config, log):
-    # load config
-    log.info(f'Using config "{config}"')
-    cfg = yaml.safe_load(open(config, 'r'))
-
-    cfg['log'] = log
-
-    # check if GPU is available
-    device = cfg.get('device')
-    if device not in ['cpu']:
-        if torch.cuda.is_available():
-            cfg['device'] = 'cuda'
-        elif hasattr(torch.backends, 'mps') and torch.backends.mps.is_available():
-            cfg['device'] = 'mps'
-        else:
-            log.warning(
-                f'WARNING: device set to "{device}" but not available; falling back to CPU...'
-            )
-            cfg['device'] = 'cpu'
-
-    device = cfg.get('device')
-    log.info(f'Using device "{device}"')
-
-    return cfg

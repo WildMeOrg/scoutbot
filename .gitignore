@@ -7,5 +7,6 @@ output.*.jpg
 .coverage
 coverage/
 
+gradio_cached_examples/
 __pycache__/
 docs/build/

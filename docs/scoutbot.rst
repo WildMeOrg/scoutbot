@@ -1,37 +1,38 @@
-Package
-=======
+ScoutBot API
+============
 
 .. toctree::
    :maxdepth: 3
    :caption: Contents:
 
 
-dataset.py
-----------
+Tiles
+-----
 
-.. automodule:: scoutbot.dataset
+.. automodule:: scoutbot.tile
    :members:
    :undoc-members:
    :show-inheritance:
 
-model.py
-----------
 
-.. automodule:: scoutbot.model
+Whole-Image Classifier (WIC)
+----------------------------
+
+.. automodule:: scoutbot.wic
    :members:
    :undoc-members:
    :show-inheritance:
 
-train.py
---------
+Localizer (LOC)
+---------------
 
-.. automodule:: scoutbot.train
+.. automodule:: scoutbot.loc
    :members:
    :undoc-members:
    :show-inheritance:
 
-utils.py
---------
+Utilities
+---------
 
 .. automodule:: scoutbot.utils
    :members:

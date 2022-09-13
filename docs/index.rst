@@ -11,4 +11,5 @@ Contents
 
    Home <self>
    usage
-   package
+   scoutbot
+   cli
