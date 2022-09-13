@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
+import cv2
 import gradio as gr
 import numpy as np
-import cv2
 
-from scoutbot import wic, loc
+from scoutbot import loc, wic
 
 
 def predict(filepath, wic_thresh, loc_thresh, nms_thresh):
@@ -44,9 +44,7 @@ def predict(filepath, wic_thresh, loc_thresh, nms_thresh):
                 )
                 color = (255, 0, 0)
                 img = cv2.rectangle(img, point1, point2, color, 2)
-                loc_detections.append(
-                    f'{detect.class_label}: {detect.confidence:0.05f}'
-                )
+                loc_detections.append(f'{detect.class_label}: {detect.confidence:0.05f}')
     loc_detections = '\n'.join(loc_detections)
 
     return img, wic_confidence, loc_detections

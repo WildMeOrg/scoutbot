@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
+from os.path import abspath, exists, join
+
 import onnx
-from os.path import exists, join, abspath
 
 
 def test_loc_onnx_load():
@@ -16,7 +17,7 @@ def test_loc_onnx_load():
 
 
 def test_loc_onnx_pipeline():
-    from scoutbot.loc import pre, predict, post, INPUT_SIZE
+    from scoutbot.loc import INPUT_SIZE, post, pre, predict
 
     inputs = [
         abspath(join('examples', '0d01a14e-311d-e153-356f-8431b6996b84.true.jpg')),
@@ -92,4 +93,4 @@ def test_loc_onnx_pipeline():
             if key == 'class_label':
                 assert getattr(output, key) == target.get(key)
             else:
-                assert abs(getattr(output, key) - target.get(key)) < 1e-6
+                assert abs(getattr(output, key) - target.get(key)) < 1e-2

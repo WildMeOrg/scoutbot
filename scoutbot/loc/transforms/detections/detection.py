@@ -12,7 +12,7 @@ __all__ = ['Detection', 'ParserType', 'Parser']
 
 
 class Detection(b.Box):
-    """ This is a generic detection class that provides some base functionality all detections need.
+    """This is a generic detection class that provides some base functionality all detections need.
     It builds upon :class:`~brambox.boxes.box.Box`.
 
     Attributes:
@@ -20,13 +20,13 @@ class Detection(b.Box):
     """
 
     def __init__(self):
-        """ x_top_left,y_top_left,width,height are in pixel coordinates """
+        """x_top_left,y_top_left,width,height are in pixel coordinates"""
         super(Detection, self).__init__()
         self.confidence = 0.0  # Confidence score between 0-1
 
     @classmethod
     def create(cls, obj=None):
-        """ Create a detection from a string or other box object.
+        """Create a detection from a string or other box object.
 
         Args:
             obj (Box or string, optional): Bounding box object to copy attributes from or string to deserialize
@@ -48,7 +48,7 @@ class Detection(b.Box):
         return instance
 
     def __repr__(self):
-        """ Unambiguous representation """
+        """Unambiguous representation"""
         string = f'{self.__class__.__name__} ' + '{'
         string += f'class_label = {self.class_label}, '
         string += f'object_id = {self.object_id}, '
@@ -60,7 +60,7 @@ class Detection(b.Box):
         return string + '}'
 
     def __str__(self):
-        """ Pretty print """
+        """Pretty print"""
         string = 'Detection {'
         string += f'\'{self.class_label}\'{"" if self.object_id is None else " "+str(self.object_id)}, '
         string += f'[{int(self.x_top_left)}, {int(self.y_top_left)}, {int(self.width)}, {int(self.height)}]'
@@ -107,6 +107,6 @@ ParserType = b.ParserType
 
 
 class Parser(b.Parser):
-    """ Generic parser class """
+    """Generic parser class"""
 
     box_type = Detection  # Derived classes should set the correct box_type

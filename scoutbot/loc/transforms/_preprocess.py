@@ -7,8 +7,10 @@
 #
 import collections
 import logging
+
 import numpy as np
 from PIL import Image, ImageOps
+
 from .util import BaseMultiTransform
 
 log = logging.getLogger(__name__)
@@ -23,7 +25,7 @@ __all__ = ['Letterbox']
 
 
 class Letterbox(BaseMultiTransform):
-    """ Transform images and annotations to the right network dimensions.
+    """Transform images and annotations to the right network dimensions.
 
     Args:
         dimension (tuple, optional): Default size for the letterboxing, expressed as a (width, height) tuple; Default **None**
@@ -61,7 +63,7 @@ class Letterbox(BaseMultiTransform):
             return data
 
     def _tf_pil(self, img):
-        """ Letterbox an image to fit in the network """
+        """Letterbox an image to fit in the network"""
         if self.dataset is not None:
             net_w, net_h = self.dataset.input_dim
         else:
@@ -100,7 +102,7 @@ class Letterbox(BaseMultiTransform):
         return img
 
     def _tf_cv(self, img):
-        """ Letterbox and image to fit in the network """
+        """Letterbox and image to fit in the network"""
         if self.dataset is not None:
             net_w, net_h = self.dataset.input_dim
         else:
@@ -144,7 +146,7 @@ class Letterbox(BaseMultiTransform):
         return img
 
     def _tf_anno(self, annos):
-        """ Change coordinates of an annotation, according to the previous letterboxing """
+        """Change coordinates of an annotation, according to the previous letterboxing"""
         for anno in annos:
             if self.scale is not None:
                 anno.x_top_left *= self.scale

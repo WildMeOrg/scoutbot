@@ -1,11 +1,11 @@
+# -*- coding: utf-8 -*-
+import numpy as np
+import PIL
 import torch
 import torchvision
 import utool as ut
-import numpy as np
-import PIL
 
-
-BATCH_SIZE = 128
+BATCH_SIZE = 2048
 INPUT_SIZE = 224
 
 
@@ -82,7 +82,7 @@ class TestAugmentations(Augmentations):
     def __init__(self, **kwargs):
         from imgaug import augmenters as iaa
 
-        self.aug = iaa.Sequential([iaa.Scale((INPUT_SIZE, INPUT_SIZE))])
+        self.aug = iaa.Sequential([iaa.Resize((INPUT_SIZE, INPUT_SIZE))])
 
 
 def _init_transforms(**kwargs):

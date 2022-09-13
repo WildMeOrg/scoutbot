@@ -6,9 +6,12 @@
 #
 
 import logging
+
 import torch
+
 # from torch.autograd import Variable
 from scoutbot.loc.transforms.detections.detection import Detection
+
 from .util import BaseTransform
 
 __all__ = [
@@ -21,7 +24,7 @@ log = logging.getLogger(__name__)
 
 
 class GetBoundingBoxes(BaseTransform):
-    """ Convert output from darknet networks to bounding box tensor.
+    """Convert output from darknet networks to bounding box tensor.
 
     Args:
         num_classes (int): number of categories
@@ -119,7 +122,7 @@ class GetBoundingBoxes(BaseTransform):
 
 
 class NonMaxSupression(BaseTransform):
-    """ Performs nms on the bounding boxes, filtering boxes with a high overlap.
+    """Performs nms on the bounding boxes, filtering boxes with a high overlap.
 
     Args:
         nms_thresh (Number [0-1]): Overlapping threshold to filter detections with non-maxima suppresion
@@ -142,7 +145,7 @@ class NonMaxSupression(BaseTransform):
 
     @staticmethod
     def _nms(boxes, nms_thresh, class_nms):
-        """ Non maximum suppression.
+        """Non maximum suppression.
 
         Args:
           boxes (tensor): Bounding boxes of one image
@@ -182,7 +185,7 @@ class NonMaxSupression(BaseTransform):
             conflicting = conflicting & same_class
 
         conflicting = conflicting.cpu()
-        keep = torch.zeros(len(conflicting), dtype=torch.uint8)
+        keep = torch.zeros(len(conflicting), dtype=bool)
         supress = torch.zeros(len(conflicting), dtype=torch.float)
         for i, row in enumerate(conflicting):
             if not supress[i]:
@@ -193,7 +196,7 @@ class NonMaxSupression(BaseTransform):
 
 
 class TensorToBrambox(BaseTransform):
-    """ Converts a tensor to a list of brambox objects.
+    """Converts a tensor to a list of brambox objects.
 
     Args:
         network_size (tuple): Tuple containing the width and height of the images going in the network
@@ -255,7 +258,7 @@ class TensorToBrambox(BaseTransform):
 
 
 class ReverseLetterbox(BaseTransform):
-    """ Performs a reverse letterbox operation on the bounding boxes, so they can be visualised on the original image.
+    """Performs a reverse letterbox operation on the bounding boxes, so they can be visualised on the original image.
 
     Args:
         network_size (tuple): Tuple containing the width and height of the images going in the network

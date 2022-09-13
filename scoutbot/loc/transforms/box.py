@@ -9,7 +9,7 @@ __all__ = ['Box', 'ParserType', 'Parser']
 
 
 class Box:
-    """ This is a generic bounding box representation.
+    """This is a generic bounding box representation.
     This class provides some base functionality to both annotations and detections.
 
     Attributes:
@@ -31,7 +31,7 @@ class Box:
 
     @classmethod
     def create(cls, obj=None):
-        """ Create a bounding box from a string or other detection object.
+        """Create a bounding box from a string or other detection object.
 
         Args:
             obj (Box or string, optional): Bounding box object to copy attributes from or string to deserialize
@@ -62,16 +62,16 @@ class Box:
         return self.__dict__ == other.__dict__
 
     def serialize(self):
-        """ abstract serializer, implement in derived classes. """
+        """abstract serializer, implement in derived classes."""
         raise NotImplementedError
 
     def deserialize(self, string):
-        """ abstract parser, implement in derived classes. """
+        """abstract parser, implement in derived classes."""
         raise NotImplementedError
 
 
 class ParserType(Enum):
-    """ Enum for differentiating between different parser types. """
+    """Enum for differentiating between different parser types."""
 
     UNDEFINED = 0  #: Undefined parsertype. Do not use this!
     SINGLE_FILE = 1  #: One single file contains all annotations
@@ -79,7 +79,7 @@ class ParserType(Enum):
 
 
 class Parser:
-    """ This is a Generic parser class.
+    """This is a Generic parser class.
 
     Args:
         kwargs (optional): Derived parsers should use keyword arguments to get any information they need upon initialisation.
@@ -97,7 +97,7 @@ class Parser:
         pass
 
     def serialize(self, box):
-        """ Serialization function that can be overloaded in the derived class.
+        """Serialization function that can be overloaded in the derived class.
         The default serializer will call the serialize function of the bounding boxes and join them with a newline.
 
         Args:
@@ -124,7 +124,7 @@ class Parser:
         return result
 
     def deserialize(self, string):
-        """ Deserialization function that can be overloaded in the derived class.
+        """Deserialization function that can be overloaded in the derived class.
         The default deserialize will create new ``box_type`` objects and call the deserialize function of these objects with every line of the input string.
 
         Args:

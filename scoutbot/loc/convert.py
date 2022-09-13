@@ -1,24 +1,7 @@
+# -*- coding: utf-8 -*-
 """
-
 pip install torch torchvision onnx onnxruntime-gpu tqdm wbia-utool scikit-learn numpy
 
-"""
-import torch
-import torchvision
-import onnx
-import onnxruntime as ort
-import tqdm
-import random
-import utool as ut
-import vtool as vt
-import cv2
-import numpy as np
-import lightnet as ln
-import sklearn
-import time
-from os.path import join, exists, split, splitext
-
-"""
 detection_config = {
     'algo': 'tile_aggregation',
     'config_filepath': 'variant3-32',
@@ -51,9 +34,28 @@ prediction_list = depc.get_property(
     'localizations', gid_list_, None, config=config
 )
 """
+import random
+import time
+from os.path import exists, join, split, splitext
+
+import cv2
+import lightnet as ln
+import numpy as np
+import onnx
+import onnxruntime as ort
+import sklearn
+import torch
+import torchvision
+import tqdm
+import utool as ut
+import vtool as vt
+import wbia
 
 WITH_GPU = False
-BATCH_SIZE = 128
+BATCH_SIZE = 16
+
+
+ibs = wbia.opendb(dbdir='/data/db')
 
 
 pkl_path = 'scout.pkl'
@@ -76,7 +78,9 @@ if not exists(pkl_path):
     for chunk_tids in tqdm.tqdm(ut.ichunks(tids, 1000)):
         _, _, chunk_flags = ibs.scout_tile_positive_cumulative_area(chunk_tids)
         chunk_filepaths = ibs.get_image_paths(chunk_tids)
-        for index, (tid, flag, filepath) in enumerate(zip(chunk_tids, chunk_flags, chunk_filepaths)):
+        for index, (tid, flag, filepath) in enumerate(
+            zip(chunk_tids, chunk_flags, chunk_filepaths)
+        ):
             if not exists(filepath):
                 continue
             if flag:
@@ -125,8 +129,8 @@ INDEX = 1
 
 config_path = f'/cache/lightnet/detect.lightnet.scout.5fbfff26.v{INDEX}.py'
 weights_path = f'/cache/lightnet/detect.lightnet.scout.5fbfff26.v{INDEX}.weights'
-conf_thresh = 0.4
-nms_thresh = 1.0
+conf_thresh = 0.0
+nms_thresh = 0.2
 
 assert exists(config_path)
 assert exists(weights_path)
@@ -171,10 +175,7 @@ for chunk in ut.ichunks(dataloader, BATCH_SIZE):
         size = img.shape[:2][::-1]
 
         img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-        img = ln.data.transform.Letterbox.apply(
-            img,
-            dimension=INPUT_SIZE
-        )
+        img = ln.data.transform.Letterbox.apply(img, dimension=INPUT_SIZE)
         img = transform(img)
 
         inputs_.append(img)
@@ -213,11 +214,7 @@ best_confusion = None
 for thresh in tqdm.tqdm(threshs):
     globals().update(locals())
     values = [
-        [
-            prediction
-            for prediction in predictions
-            if prediction.confidence >= thresh
-        ]
+        [prediction for prediction in predictions if prediction.confidence >= thresh]
         for predictions in predictions_pytorch
     ]
     values = [len(value) > 0 for value in values]
@@ -236,14 +233,19 @@ print(f'TN:        {tn}')
 print(f'FP:        {fp}')
 print(f'FN:        {fn}')
 
-"""
-Thresh:    0.48
-Accuracy:  0.965
-TP:        94
-TN:        99
-FP:        1
-FN:        6
-"""
+# Thresh:    0.25
+# Accuracy:  0.93
+# TP:        88
+# TN:        98
+# FP:        2
+# FN:        12
+
+# Thresh:    0.35
+# Accuracy:  0.925
+# TP:        85
+# TN:        100
+# FP:        0
+# FN:        15
 
 #############
 
@@ -259,7 +261,11 @@ output = torch.onnx.export(
     onnx_filename,
     verbose=True,
     input_names=input_names,
-    output_names=output_names
+    output_names=output_names,
+    dynamic_axes={
+        'input': {0: 'batch_size'},  # variable length axes
+        'output': {0: 'batch_size'},
+    },
 )
 
 ###########
@@ -276,14 +282,12 @@ num_classes = params.network.num_classes
 anchors = params.network.anchors
 network_size = (INPUT_SIZE_H, INPUT_SIZE_W, 3)
 class_label_map = params.class_label_map
-conf_thresh = 0.4
-nms_thresh = 1.0
+conf_thresh = 0.0
+nms_thresh = 0.2
 
 postprocess = ln.data.transform.Compose(
     [
-        ln.data.transform.GetBoundingBoxes(
-            num_classes, anchors, conf_thresh
-        ),
+        ln.data.transform.GetBoundingBoxes(num_classes, anchors, conf_thresh),
         ln.data.transform.NonMaxSupression(nms_thresh),
         ln.data.transform.TensorToBrambox(network_size, class_label_map),
     ]
@@ -299,7 +303,7 @@ for chunk in ut.ichunks(zipped, BATCH_SIZE):
     sizes_ = ut.take_column(chunk, 1)
 
     trim = len(imgs)
-    while(len(imgs)) < BATCH_SIZE:
+    while (len(imgs)) < BATCH_SIZE:
         imgs.append(np.random.randn(3, INPUT_SIZE_H, INPUT_SIZE_W).astype(np.float32))
         sizes_.append(INPUT_SIZE)
     input_ = np.array(imgs, dtype=np.float32)
@@ -328,19 +332,11 @@ predictions_onnx = outputs
 
 globals().update(locals())
 values_pytorch = [
-    [
-        prediction
-        for prediction in predictions
-        if prediction.confidence >= best_thresh
-    ]
+    [prediction for prediction in predictions if prediction.confidence >= best_thresh]
     for predictions in predictions_pytorch
 ]
 values_onnx = [
-    [
-        prediction
-        for prediction in predictions
-        if prediction.confidence >= best_thresh
-    ]
+    [prediction for prediction in predictions if prediction.confidence >= best_thresh]
     for predictions in predictions_onnx
 ]
 
@@ -350,9 +346,7 @@ for value_pytorch, value_onnx in zip(values_pytorch, values_onnx):
     for value_p, value_o in zip(value_pytorch, value_onnx):
         assert value_p.class_label == value_o.class_label
         for attr in ['x_top_left', 'y_top_left', 'width', 'height', 'confidence']:
-            deviation = abs(
-                getattr(value_p, attr) - getattr(value_o, attr)
-            )
+            deviation = abs(getattr(value_p, attr) - getattr(value_o, attr))
             deviations.append(deviation)
 
 print(f'Min:  {np.min(deviations):0.08f}')
@@ -362,11 +356,7 @@ print(f'Time Pytorch: {time_pytorch:0.02f} sec.')
 print(f'Time ONNX:    {time_onnx:0.02f} sec.')
 
 values = [
-    [
-        prediction
-        for prediction in predictions
-        if prediction.confidence >= best_thresh
-    ]
+    [prediction for prediction in predictions if prediction.confidence >= best_thresh]
     for predictions in predictions_onnx
 ]
 values = [len(value) > 0 for value in values]
@@ -374,21 +364,33 @@ accuracy = sklearn.metrics.accuracy_score(targets, values)
 confusion = sklearn.metrics.confusion_matrix(targets, values)
 tn, fp, fn, tp = best_confusion.ravel()
 
+print(f'Thresh:    {best_thresh}')
 print(f'Accuracy:  {best_accuracy}')
 print(f'TP:        {tp}')
 print(f'TN:        {tn}')
 print(f'FP:        {fp}')
 print(f'FN:        {fn}')
 
-"""
-Min:  0.00000000
-Max:  0.00012207
-Mean: 0.00001001 +/- 0.00001388
-Time Pytorch: 18.31 sec.
-Time ONNX:    10.37 sec.
-Accuracy:  0.965
-TP:        94
-TN:        99
-FP:        1
-FN:        6
-"""
+# Min:  0.00000000
+# Max:  0.00017841
+# Mean: 0.00000904 +/- 0.00001550
+# Time Pytorch: 18.18 sec.
+# Time ONNX:    9.77 sec.
+# Thresh:    0.25
+# Accuracy:  0.93
+# TP:        88
+# TN:        98
+# FP:        2
+# FN:        12
+
+# Min:  0.00000000
+# Max:  0.00011268
+# Mean: 0.00000845 +/- 0.00001284
+# Time Pytorch: 18.75 sec.
+# Time ONNX:    9.72 sec.
+# Thresh:    0.35000000000000003
+# Accuracy:  0.925
+# TP:        85
+# TN:        100
+# FP:        0
+# FN:        15

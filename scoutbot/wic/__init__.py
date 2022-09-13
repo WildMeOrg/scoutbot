@@ -3,13 +3,19 @@
 2022 Wild Me
 '''
 from os.path import join
-import onnxruntime as ort
 from pathlib import Path
-from scoutbot.wic.dataloader import _init_transforms, ImageFilePathList, BATCH_SIZE, INPUT_SIZE
-import numpy as np
-import utool as ut
-import torch
 
+import numpy as np
+import onnxruntime as ort
+import torch
+import utool as ut
+
+from scoutbot.wic.dataloader import (
+    BATCH_SIZE,
+    INPUT_SIZE,
+    ImageFilePathList,
+    _init_transforms,
+)
 
 PWD = Path(__file__).absolute().parent
 
@@ -25,23 +31,23 @@ def pre(inputs):
     )
 
     data = []
-    for data_, in dataloader:
+    for (data_,) in dataloader:
         data += data_.tolist()
 
     return data
 
 
-def predict(data):
-    ort_session = ort.InferenceSession(
-        ONNX_MODEL, 
-        providers=['CPUExecutionProvider']
-    )
+def predict(data, fill=False):
+    ort_session = ort.InferenceSession(ONNX_MODEL, providers=['CPUExecutionProvider'])
 
     preds = []
     for chunk in ut.ichunks(data, BATCH_SIZE):
         trim = len(chunk)
-        while(len(chunk)) < BATCH_SIZE:
-            chunk.append(np.random.randn(3, INPUT_SIZE, INPUT_SIZE).astype(np.float32))
+        if fill:
+            while (len(chunk)) < BATCH_SIZE:
+                chunk.append(
+                    np.random.randn(3, INPUT_SIZE, INPUT_SIZE).astype(np.float32)
+                )
         input_ = np.array(chunk, dtype=np.float32)
 
         pred_ = ort_session.run(
@@ -54,8 +60,5 @@ def predict(data):
 
 
 def post(preds):
-    outputs = [
-        dict(zip(ONNX_CLASSES, pred)) 
-        for pred in preds
-    ]
+    outputs = [dict(zip(ONNX_CLASSES, pred)) for pred in preds]
     return outputs

@@ -12,7 +12,7 @@ __all__ = ['Annotation', 'ParserType', 'Parser']
 
 
 class Annotation(b.Box):
-    """ This is a generic annotation class that provides some common functionality all annotations need.
+    """This is a generic annotation class that provides some common functionality all annotations need.
     It builds upon :class:`~brambox.boxes.box.Box`.
 
     Attributes:
@@ -37,7 +37,7 @@ class Annotation(b.Box):
     """
 
     def __init__(self):
-        """ x_top_left,y_top_left,width,height are in pixel coordinates """
+        """x_top_left,y_top_left,width,height are in pixel coordinates"""
         super(Annotation, self).__init__()
         self.lost = False  # if object is not seen in the image, if true one must ignore this annotation
         self.difficult = False  # if the object is considered difficult
@@ -75,7 +75,7 @@ class Annotation(b.Box):
 
     @classmethod
     def create(cls, obj=None):
-        """ Create an annotation from a string or other box object.
+        """Create an annotation from a string or other box object.
 
         Args:
             obj (Box or string, optional): Bounding box object to copy attributes from or string to deserialize
@@ -113,7 +113,7 @@ class Annotation(b.Box):
         return instance
 
     def __repr__(self):
-        """ Unambiguous representation """
+        """Unambiguous representation"""
         string = f'{self.__class__.__name__} ' + '{'
         string += f"class_label = '{self.class_label}', "
         string += f'object_id = {self.object_id}, '
@@ -134,7 +134,7 @@ class Annotation(b.Box):
         return string + '}'
 
     def __str__(self):
-        """ Pretty print """
+        """Pretty print"""
         string = 'Annotation {'
         string += f'\'{self.class_label}\'{"" if self.object_id is None else " "+str(self.object_id)}, '
         string += f'[{int(self.x_top_left)}, {int(self.y_top_left)}, {int(self.width)}, {int(self.height)}]'
@@ -160,6 +160,6 @@ ParserType = b.ParserType
 
 
 class Parser(b.Parser):
-    """ Generic parser class """
+    """Generic parser class"""
 
     box_type = Annotation  # Derived classes should set the correct box_type

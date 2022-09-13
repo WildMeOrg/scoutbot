@@ -11,7 +11,7 @@ __all__ = ['Compose']
 
 
 class Compose(list):
-    """ This is lightnet's own version of :class:`torchvision.transforms.Compose`.
+    """This is lightnet's own version of :class:`torchvision.transforms.Compose`.
 
     Note:
         The reason we have our own version is because this one offers more freedom to the user.
@@ -55,7 +55,7 @@ class Compose(list):
 
 
 class BaseTransform(ABC):
-    """ Base transform class for the pre- and post-processing functions.
+    """Base transform class for the pre- and post-processing functions.
     This class allows to create an object with some case specific settings, and then call it with the data to perform the transformation.
     It also allows to call the static method ``apply`` with the data and settings. This is usefull if you want to transform a single data object.
     """
@@ -70,7 +70,7 @@ class BaseTransform(ABC):
     @classmethod
     @abstractmethod
     def apply(cls, data, **kwargs):
-        """ Classmethod that applies the transformation once.
+        """Classmethod that applies the transformation once.
 
         Args:
             data: Data to transform (eg. image)
@@ -80,7 +80,7 @@ class BaseTransform(ABC):
 
 
 class BaseMultiTransform(ABC):
-    """ Base multiple transform class that is mainly used in pre-processing functions.
+    """Base multiple transform class that is mainly used in pre-processing functions.
     This class exists for transforms that affect both images and annotations.
     It provides a classmethod ``apply``, that will perform the transormation on one (data, target) pair.
     """
@@ -95,7 +95,7 @@ class BaseMultiTransform(ABC):
 
     @classmethod
     def apply(cls, data, target=None, **kwargs):
-        """ Classmethod that applies the transformation once.
+        """Classmethod that applies the transformation once.
 
         Args:
             data: Data to transform (eg. image)

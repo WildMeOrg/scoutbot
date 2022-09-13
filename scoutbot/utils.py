@@ -5,7 +5,6 @@
 import logging
 from logging.handlers import TimedRotatingFileHandler
 
-
 DAYS = 21
 
 

@@ -3,26 +3,27 @@
 2022 Wild Me
 '''
 from os.path import join
-import onnxruntime as ort
 from pathlib import Path
-import torchvision
-import numpy as np
-import utool as ut
-import torch
+
 import cv2
+import numpy as np
+import onnxruntime as ort
+import torch
+import torchvision
+import utool as ut
+
 from scoutbot.loc.transforms import (
-    Letterbox,
     Compose,
     GetBoundingBoxes,
+    Letterbox,
     NonMaxSupression,
-    TensorToBrambox,
     ReverseLetterbox,
+    TensorToBrambox,
 )
-
 
 PWD = Path(__file__).absolute().parent
 
-BATCH_SIZE = 128
+BATCH_SIZE = 16
 INPUT_SIZE = (416, 416)
 INPUT_SIZE_H, INPUT_SIZE_W = INPUT_SIZE
 NETWORK_SIZE = (INPUT_SIZE_H, INPUT_SIZE_W, 3)
@@ -52,10 +53,7 @@ def pre(inputs):
         size = img.shape[:2][::-1]
 
         img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-        img = Letterbox.apply(
-            img,
-            dimension=INPUT_SIZE
-        )
+        img = Letterbox.apply(img, dimension=INPUT_SIZE)
         img = transform(img)
 
         data.append(img.tolist())
@@ -64,17 +62,17 @@ def pre(inputs):
     return data, sizes
 
 
-def predict(data):
-    ort_session = ort.InferenceSession(
-        ONNX_MODEL,
-        providers=['CPUExecutionProvider']
-    )
+def predict(data, fill=True):
+    ort_session = ort.InferenceSession(ONNX_MODEL, providers=['CPUExecutionProvider'])
 
     preds = []
     for chunk in ut.ichunks(data, BATCH_SIZE):
         trim = len(chunk)
-        while(len(chunk)) < BATCH_SIZE:
-            chunk.append(np.random.randn(3, INPUT_SIZE_H, INPUT_SIZE_W).astype(np.float32))
+        if fill:
+            while (len(chunk)) < BATCH_SIZE:
+                chunk.append(
+                    np.random.randn(3, INPUT_SIZE_H, INPUT_SIZE_W).astype(np.float32)
+                )
         input_ = np.array(chunk, dtype=np.float32)
 
         pred_ = ort_session.run(
@@ -89,9 +87,7 @@ def predict(data):
 def post(preds, sizes, loc_thresh=CONF_THRESH, nms_thresh=NMS_THRESH):
     postprocess = Compose(
         [
-            GetBoundingBoxes(
-                NUM_CLASSES, ANCHORS, loc_thresh
-            ),
+            GetBoundingBoxes(NUM_CLASSES, ANCHORS, loc_thresh),
             NonMaxSupression(nms_thresh),
             TensorToBrambox(NETWORK_SIZE, CLASS_LABEL_MAP),
         ]
@@ -101,9 +97,7 @@ def post(preds, sizes, loc_thresh=CONF_THRESH, nms_thresh=NMS_THRESH):
 
     outputs = []
     for pred, size in zip(preds, sizes):
-        output = ReverseLetterbox.apply(
-            [pred], INPUT_SIZE, size
-        )
+        output = ReverseLetterbox.apply([pred], INPUT_SIZE, size)
         outputs.append(output[0])
 
     return outputs

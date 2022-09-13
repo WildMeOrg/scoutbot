@@ -1,8 +1,6 @@
 # -*- coding: utf-8 -*-
 import logging
 
-import pytest
-
 log = logging.getLogger('pytest.conftest')  # pylint: disable=invalid-name
 
 

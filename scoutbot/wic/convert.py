@@ -1,32 +1,37 @@
+# -*- coding: utf-8 -*-
 """
 
 pip install torch torchvision onnx onnxruntime-gpu tqdm wbia-utool scikit-learn numpy
 
 """
+import random
+import time
+from collections import OrderedDict
+from os.path import exists, join, split, splitext
+
+import numpy as np
+import onnx
+import onnxruntime as ort
+import sklearn
 import torch
 import torch.nn as nn
 import torchvision
-import onnx
-import onnxruntime as ort
 import tqdm
-import random
 import utool as ut
-import numpy as np
-import sklearn
-import time
-from os.path import join, exists, split, splitext
-from wbia.algo.detect.densenet import INPUT_SIZE, _init_transforms, ImageFilePathList
-
+import wbia
+from wbia.algo.detect.densenet import INPUT_SIZE, ImageFilePathList, _init_transforms
 
 WITH_GPU = False
 BATCH_SIZE = 128
 
 
+ibs = wbia.opendb(dbdir='/data/db')
+
+
 pkl_path = 'scout.pkl'
 if not exists(pkl_path):
     if False:
-        pass
-        # tids = ibs.get_valid_gids(is_tile=True)
+        tids = ibs.get_valid_gids(is_tile=True)
     else:
         imageset_text_list = ['TEST_SET']
         imageset_rowid_list = ibs.get_imageset_imgsetids_from_text(imageset_text_list)
@@ -42,7 +47,9 @@ if not exists(pkl_path):
     for chunk_tids in tqdm.tqdm(ut.ichunks(tids, 1000)):
         _, _, chunk_flags = ibs.scout_tile_positive_cumulative_area(chunk_tids)
         chunk_filepaths = ibs.get_image_paths(chunk_tids)
-        for index, (tid, flag, filepath) in enumerate(zip(chunk_tids, chunk_flags, chunk_filepaths)):
+        for index, (tid, flag, filepath) in enumerate(
+            zip(chunk_tids, chunk_flags, chunk_filepaths)
+        ):
             if not exists(filepath):
                 continue
             if flag:
@@ -85,7 +92,7 @@ assert sum(map(exists, filepaths)) == len(filepaths)
 
 ##########
 
-INDEX = 2
+INDEX = 0
 
 weights_path = f'/cache/wbia/classifier2.scout.5fbfff26.3/classifier2.vulcan.5fbfff26.3/classifier.{INDEX}.weights'
 
@@ -100,8 +107,6 @@ num_ftrs = model.classifier.in_features
 model.classifier = nn.Linear(num_ftrs, len(classes))
 
 # Convert any weights to non-parallel version
-from collections import OrderedDict
-
 new_state = OrderedDict()
 for k, v in state.items():
     k = k.replace('module.', '')
@@ -155,10 +160,7 @@ best_accuracy = 0.0
 best_confusion = None
 for thresh in tqdm.tqdm(threshs):
     globals().update(locals())
-    values = [
-        prediction['positive'] >= thresh
-        for prediction in predictions_pytorch
-    ]
+    values = [prediction['positive'] >= thresh for prediction in predictions_pytorch]
     accuracy = sklearn.metrics.accuracy_score(targets, values)
     confusion = sklearn.metrics.confusion_matrix(targets, values)
     if accuracy > best_accuracy:
@@ -174,6 +176,27 @@ print(f'TN:        {tn}')
 print(f'FP:        {fp}')
 print(f'FN:        {fn}')
 
+# Thresh:    0.01
+# Accuracy:  0.895
+# TP:        83
+# TN:        96
+# FP:        4
+# FN:        17
+
+# Thresh:    0.06
+# Accuracy:  0.91
+# TP:        85
+# TN:        97
+# FP:        3
+# FN:        15
+
+# Thresh:    0.01
+# Accuracy:  0.905
+# TP:        83
+# TN:        98
+# FP:        2
+# FN:        17
+
 #############
 
 dummy_input = torch.randn(BATCH_SIZE, 3, INPUT_SIZE, INPUT_SIZE, device='cpu')
@@ -187,7 +210,11 @@ output = torch.onnx.export(
     onnx_filename,
     verbose=True,
     input_names=input_names,
-    output_names=output_names
+    output_names=output_names,
+    dynamic_axes={
+        'input': {0: 'batch_size'},  # variable length axes
+        'output': {0: 'batch_size'},
+    },
 )
 
 ###########
@@ -204,7 +231,7 @@ time_onnx = 0.0
 outputs = []
 for chunk in ut.ichunks(inputs, BATCH_SIZE):
     trim = len(chunk)
-    while(len(chunk)) < BATCH_SIZE:
+    while (len(chunk)) < BATCH_SIZE:
         chunk.append(np.random.randn(3, INPUT_SIZE, INPUT_SIZE).astype(np.float32))
     input_ = np.array(chunk, dtype=np.float32)
 
@@ -222,7 +249,9 @@ predictions_onnx = [dict(zip(classes, output)) for output in outputs]
 
 ###########
 
-values_pytorch = [prediction_pytorch['positive'] for prediction_pytorch in predictions_pytorch]
+values_pytorch = [
+    prediction_pytorch['positive'] for prediction_pytorch in predictions_pytorch
+]
 values_onnx = [prediction_onnx['positive'] for prediction_onnx in predictions_onnx]
 deviations = [
     abs(value_pytorch - value_onnx)
@@ -236,29 +265,51 @@ print(f'Time Pytorch: {time_pytorch:0.02f} sec.')
 print(f'Time ONNX:    {time_onnx:0.02f} sec.')
 
 globals().update(locals())
-values = [
-    prediction['positive'] >= best_thresh
-    for prediction in predictions_onnx
-]
+values = [prediction['positive'] >= best_thresh for prediction in predictions_onnx]
 accuracy = sklearn.metrics.accuracy_score(targets, values)
 confusion = sklearn.metrics.confusion_matrix(targets, values)
 tn, fp, fn, tp = best_confusion.ravel()
 
+print(f'Thresh:    {best_thresh}')
 print(f'Accuracy:  {best_accuracy}')
 print(f'TP:        {tp}')
 print(f'TN:        {tn}')
 print(f'FP:        {fp}')
 print(f'FN:        {fn}')
 
-"""
-Min:  0.00000000
-Max:  0.00000256
-Mean: 0.00000003 +/- 0.00000021
-Time Pytorch: 10.78 sec.
-Time ONNX:    3.83 sec.
-Accuracy:  0.99
-TP:        98
-TN:        100
-FP:        0
-FN:        2
-"""
+# Min:  0.00000000
+# Max:  0.00000143
+# Mean: 0.00000003 +/- 0.00000013
+# Time Pytorch: 9.64 sec.
+# Time ONNX:    3.17 sec.
+# Thresh:    0.01
+# Accuracy:  0.895
+# TP:        83
+# TN:        96
+# FP:        4
+# FN:        17
+
+# Min:  0.00000000
+# Max:  0.00000113
+# Mean: 0.00000004 +/- 0.00000013
+# Time Pytorch: 9.42 sec.
+# Time ONNX:    3.54 sec.
+# Thresh:    0.06
+# Accuracy:  0.91
+# TP:        85
+# TN:        97
+# FP:        3
+# FN:        15
+
+
+# Min:  0.00000000
+# Max:  0.00000209
+# Mean: 0.00000004 +/- 0.00000019
+# Time Pytorch: 9.98 sec.
+# Time ONNX:    3.45 sec.
+# Thresh:    0.01
+# Accuracy:  0.905
+# TP:        83
+# TN:        98
+# FP:        2
+# FN:        17
