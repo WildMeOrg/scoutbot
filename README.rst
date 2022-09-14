@@ -123,8 +123,8 @@ The code base has been formatted by Brunette, which is a fork and more configura
     :target: https://github.com/WildMeOrg/scoutbot/actions/workflows/testing.yml
     :alt: GitHub CI
 
-.. |Codecov| image:: https://codecov.io/gh/WildMeOrg/houston/branch/develop/graph/badge.svg?token=M8MR14ED6V
-    :target: https://codecov.io/gh/WildMeOrg/houston
+.. |Codecov| image:: https://codecov.io/gh/WildMeOrg/scoutbot/branch/main/graph/badge.svg?token=M8MR14ED6V
+    :target: https://codecov.io/gh/WildMeOrg/scoutbot
     :alt: Codecov
 
 .. |Wheel| image:: https://github.com/WildMeOrg/scoutbot/actions/workflows/python-publish.yml/badge.svg

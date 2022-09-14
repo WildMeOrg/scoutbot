@@ -5,3 +5,7 @@ include *.rst
 
 # Include the license file
 include LICENSE
+
+# Include ONNX files
+include scoutbot/loc/models/onnx/scout.loc.5fbfff26.0.onnx
+include scoutbot/wic/models/onnx/scout.wic.5fbfff26.3.0.onnx
