@@ -126,7 +126,7 @@ The code base has been formatted by Brunette, which is a fork and more configura
     :target: https://github.com/WildMeOrg/scoutbot/actions/workflows/testing.yml
     :alt: GitHub CI
 
-.. |Codecov| image:: https://codecov.io/gh/WildMeOrg/scoutbot/branch/main/graph/badge.svg?token=M8MR14ED6V
+.. |Codecov| image:: https://codecov.io/gh/WildMeOrg/scoutbot/branch/main/graph/badge.svg?token=FR6ITMWQNI
     :target: https://codecov.io/gh/WildMeOrg/scoutbot
     :alt: Codecov
 
@@ -142,6 +142,6 @@ The code base has been formatted by Brunette, which is a fork and more configura
     :target: https://wildme-scoutbot.readthedocs.io/en/latest/?badge=latest
     :alt: ReadTheDocs
 
-.. |Huggingface| image:: https://img.shields.io/badge/HuggingFace-Running-success
+.. |Huggingface| image:: https://img.shields.io/badge/HuggingFace-running-success
     :target: https://huggingface.co/spaces/WildMeOrg/scoutbot
     :alt: Huggingface

@@ -44,7 +44,7 @@ def predict(filepath, wic_thresh, loc_thresh, nms_thresh):
                 )
                 color = (255, 0, 0)
                 img = cv2.rectangle(img, point1, point2, color, 2)
-                loc_detections.append(f'{detect.class_label}: {detect.confidence:0.05f}')
+                loc_detections.append(f'{detect.class_label}: {detect.confidence:0.04f}')
     loc_detections = '\n'.join(loc_detections)
 
     return img, wic_confidence, loc_detections
