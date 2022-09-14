@@ -56,14 +56,17 @@ The application can also be built into a Docker image and hosted on Docker Hub.
 
 .. code:: bash
 
+    # linux/amd64
+
+    docker login
+
     export DOCKER_BUILDKIT=1
     export DOCKER_CLI_EXPERIMENTAL=enabled
-
     docker buildx create --name multi-arch-builder --use
 
     docker buildx build \
         -t wildme/scoutbot:latest \
-        --platform linux/amd64,linux/arm64 \
+        --platform linux/arm64 \
         --push \
         .
 

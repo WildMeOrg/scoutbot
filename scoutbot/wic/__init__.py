@@ -38,7 +38,9 @@ def pre(inputs):
 
 
 def predict(data, fill=False):
-    ort_session = ort.InferenceSession(ONNX_MODEL, providers=['CPUExecutionProvider'])
+    ort_session = ort.InferenceSession(
+        ONNX_MODEL, providers=['CUDAExecutionProvider', 'CPUExecutionProvider']
+    )
 
     preds = []
     for chunk in ut.ichunks(data, BATCH_SIZE):

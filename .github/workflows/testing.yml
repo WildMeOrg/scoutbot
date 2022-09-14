@@ -49,13 +49,11 @@ jobs:
       - name: Run coverage
         run: |
           coverage xml html
-        env:
-          LOG_WIDTH: 120
 
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v1.2.1
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
-          files: ./_coverage/coverage.xml
+          files: ./coverage/coverage.xml
           env_vars: OS,PYTHON
           fail_ci_if_error: true
