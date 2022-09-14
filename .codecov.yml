@@ -1,6 +1,11 @@
 codecov:
   require_ci_to_pass: yes
 
+ignore:
+  - "app.py"
+  - "scoutbot/*/convert.py"       # wildcards accepted
+  - "**/*.py"         # glob accepted
+
 coverage:
   status:
     project:

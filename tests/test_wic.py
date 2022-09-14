@@ -5,10 +5,11 @@ import onnx
 
 
 def test_wic_onnx_load():
-    from scoutbot.wic import ONNX_MODEL
+    from scoutbot.wic import fetch
 
-    model = onnx.load(ONNX_MODEL)
-    assert exists(ONNX_MODEL)
+    onnx_model = fetch()
+    model = onnx.load(onnx_model)
+    assert exists(onnx_model)
 
     onnx.checker.check_model(model)
 

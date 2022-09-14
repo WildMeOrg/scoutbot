@@ -6,6 +6,7 @@ numpy
 onnxruntime-gpu
 opencv-python-headless
 Pillow
+pooch
 rich
 torch
 torchvision

@@ -2,11 +2,12 @@
 '''
 2022 Wild Me
 '''
-from os.path import join
+from os.path import exists, join
 from pathlib import Path
 
 import numpy as np
 import onnxruntime as ort
+import pooch
 import torch
 import utool as ut
 
@@ -19,8 +20,24 @@ from scoutbot.wic.dataloader import (
 
 PWD = Path(__file__).absolute().parent
 
-ONNX_MODEL = join(PWD, 'models', 'onnx', 'scout.wic.5fbfff26.3.0.onnx')
+ONNX_MODEL = 'scout.wic.5fbfff26.3.0.onnx'
+ONNX_MODEL_PATH = join(PWD, 'models', 'onnx', ONNX_MODEL)
+ONNX_MODEL_HASH = 'cbc7f381fa58504e03b6510245b6b2742d63049429337465d95663a6468df4c1'
 ONNX_CLASSES = ['negative', 'positive']
+
+
+def fetch():
+    if exists(ONNX_MODEL_PATH):
+        onnx_model = ONNX_MODEL_PATH
+    else:
+        onnx_model = pooch.retrieve(
+            url=f'https://wildbookiarepository.azureedge.net/models/{ONNX_MODEL}',
+            known_hash=ONNX_MODEL_HASH,
+            progressbar=True,
+        )
+        assert exists(onnx_model)
+
+    return onnx_model
 
 
 def pre(inputs):
@@ -38,8 +55,10 @@ def pre(inputs):
 
 
 def predict(data, fill=False):
+    onnx_model = fetch()
+
     ort_session = ort.InferenceSession(
-        ONNX_MODEL, providers=['CUDAExecutionProvider', 'CPUExecutionProvider']
+        onnx_model, providers=['CUDAExecutionProvider', 'CPUExecutionProvider']
     )
 
     preds = []
