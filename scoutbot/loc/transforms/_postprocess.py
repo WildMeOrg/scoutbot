@@ -10,8 +10,6 @@ import logging
 import torch
 
 # from torch.autograd import Variable
-from scoutbot.loc.transforms.detections.detection import Detection
-
 from .util import BaseTransform
 
 __all__ = [
@@ -234,6 +232,8 @@ class TensorToBrambox(BaseTransform):
 
     @staticmethod
     def _convert(boxes, width, height, class_label_map):
+        from scoutbot.loc.transforms.detections.detection import Detection
+
         boxes[:, 0:3:2].mul_(width)
         boxes[:, 0] -= boxes[:, 2] / 2
         boxes[:, 1:4:2].mul_(height)

@@ -61,8 +61,6 @@ The application can also be built into a Docker image and hosted on Docker Hub.
 
 .. code-block:: console
 
-    # linux/amd64
-
     docker login
 
     export DOCKER_BUILDKIT=1
@@ -71,7 +69,7 @@ The application can also be built into a Docker image and hosted on Docker Hub.
 
     docker buildx build \
         -t wildme/scoutbot:latest \
-        --platform linux/arm64 \
+        --platform linux/amd64 \
         --push \
         .
 
