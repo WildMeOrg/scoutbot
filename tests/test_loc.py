@@ -47,53 +47,53 @@ def test_loc_onnx_pipeline():
     # fmt: off
     targets = [
         {
-            'class_label': 'elephant_savanna',
-            'x_top_left': 206.00893930,
-            'y_top_left': 189.09138371,
-            'width'     :  53.78145658,
-            'height'    :  66.46106896,
-            'confidence':   0.77065581,
+            'l': 'elephant_savanna',
+            'x': 206.00893930,
+            'y': 189.09138371,
+            'w':  53.78145658,
+            'h':  66.46106896,
+            'c':   0.77065581,
         },
         {
-            'class_label': 'elephant_savanna',
-            'x_top_left': 216.61065204,
-            'y_top_left': 193.30525090,
-            'width'     :  42.83404541,
-            'height'    :  62.44728440,
-            'confidence':   0.61152166,
+            'l': 'elephant_savanna',
+            'x': 216.61065204,
+            'y': 193.30525090,
+            'w':  42.83404541,
+            'h':  62.44728440,
+            'c':   0.61152166,
         },
         {
-            'class_label': 'elephant_savanna',
-            'x_top_left':  51.61210749,
-            'y_top_left': 235.37819260,
-            'width'     :  79.69709660,
-            'height'    :  17.41258826,
-            'confidence':   0.50862342,
+            'l': 'elephant_savanna',
+            'x':  51.61210749,
+            'y': 235.37819260,
+            'w':  79.69709660,
+            'h':  17.41258826,
+            'c':   0.50862342,
         },
         {
-            'class_label': 'elephant_savanna',
-            'x_top_left':  57.47630427,
-            'y_top_left': 236.92587515,
-            'width'     :  94.69935960,
-            'height'    :  16.03246718,
-            'confidence':   0.44841822,
+            'l': 'elephant_savanna',
+            'x':  57.47630427,
+            'y': 236.92587515,
+            'w':  94.69935960,
+            'h':  16.03246718,
+            'c':   0.44841822,
         },
         {
-            'class_label': 'elephant_savanna',
-            'x_top_left':  37.07233605,
-            'y_top_left': 230.39122596,
-            'width'     : 105.40560208,
-            'height'    :  24.81017362,
-            'confidence':   0.44012001,
+            'l': 'elephant_savanna',
+            'x':  37.07233605,
+            'y': 230.39122596,
+            'w': 105.40560208,
+            'h':  24.81017362,
+            'c':   0.44012001,
         },
     ]
     # fmt: on
 
     for output, target in zip(outputs[0], targets):
         for key in target.keys():
-            if key == 'class_label':
-                assert getattr(output, key) == target.get(key)
-            elif key == 'confidence':
-                assert abs(getattr(output, key) - target.get(key)) < 1e-2
+            if key == 'l':
+                assert output.get(key) == target.get(key)
+            elif key == 'c':
+                assert abs(output.get(key) - target.get(key)) < 1e-2
             else:
-                assert abs(getattr(output, key) - target.get(key)) < 3
+                assert abs(output.get(key) - target.get(key)) < 3

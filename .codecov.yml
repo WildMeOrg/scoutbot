@@ -3,8 +3,7 @@ codecov:
 
 ignore:
   - "app.py"
-  - "scoutbot/*/convert.py"       # wildcards accepted
-  - "**/*.py"         # glob accepted
+  - "scoutbot/*/convert.py"
 
 coverage:
   status:

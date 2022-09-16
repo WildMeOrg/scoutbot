@@ -4,6 +4,7 @@ output.*.jpg
 
 *.egg-info/
 
+examples/*_w_256_h_256.jpg
 .coverage
 coverage/
 

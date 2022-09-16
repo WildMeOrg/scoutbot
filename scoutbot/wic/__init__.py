@@ -25,9 +25,11 @@ ONNX_MODEL_PATH = join(PWD, 'models', 'onnx', ONNX_MODEL)
 ONNX_MODEL_HASH = 'cbc7f381fa58504e03b6510245b6b2742d63049429337465d95663a6468df4c1'
 ONNX_CLASSES = ['negative', 'positive']
 
+WIC_THRESH = 0.2
 
-def fetch():
-    if exists(ONNX_MODEL_PATH):
+
+def fetch(pull=False):
+    if not pull and exists(ONNX_MODEL_PATH):
         onnx_model = ONNX_MODEL_PATH
     else:
         onnx_model = pooch.retrieve(

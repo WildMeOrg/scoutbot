@@ -19,18 +19,19 @@ def compute(img_filepath, grid1=True, grid2=True, ext=None, **kwargs):
     """Compute the tiles for a given input image"""
     assert exists(img_filepath)
     img = cv2.imread(img_filepath)
+    shape = img.shape
 
     grids = []
     if grid1:
-        grids += tile_grid(img.shape)
+        grids += tile_grid(shape)
     if grid2:
-        grids += tile_grid(img.shape, offset=TILE_WIDTH // 2, borders=False)
+        grids += tile_grid(shape, offset=TILE_WIDTH // 2, borders=False)
 
     filepaths = [tile_filepath(img_filepath, grid, ext=ext) for grid in grids]
     for grid, filepath in zip(grids, filepaths):
         assert tile_write(img, grid, filepath)
 
-    return filepaths
+    return shape, grids, filepaths
 
 
 def tile_write(img, grid, filepath):

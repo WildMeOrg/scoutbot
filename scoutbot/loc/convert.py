@@ -1,38 +1,6 @@
 # -*- coding: utf-8 -*-
 """
 pip install torch torchvision onnx onnxruntime-gpu tqdm wbia-utool scikit-learn numpy
-
-detection_config = {
-    'algo': 'tile_aggregation',
-    'config_filepath': 'variant3-32',
-    'weight_filepath': 'densenet+lightnet;scout-5fbfff26-boost3,0.400,scout_5fbfff26_v0,0.4',
-    'nms_thresh': 0.8,
-    'sensitivity': 0.5077,
-}
-
-(
-    wic_model_tag,
-    wic_thresh,
-    weight_filepath,
-    nms_thresh,
-) = 'scout-5fbfff26-boost3,0.400,scout_5fbfff26_v0,0.4'
-
-
-wic_confidence_list = ibs.scout_wic_test(
-    gid_list, classifier_algo='densenet', model_tag=wic_model_tag
-)
-config = {
-    'grid': False,
-    'algo': 'lightnet',
-    'config_filepath': weight_filepath,
-    'weight_filepath': weight_filepath,
-    'nms': True,
-    'nms_thresh': nms_thresh,
-    'sensitivity': 0.0,
-}
-prediction_list = depc.get_property(
-    'localizations', gid_list_, None, config=config
-)
 """
 import random
 import time

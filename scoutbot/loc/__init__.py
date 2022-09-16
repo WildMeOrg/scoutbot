@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 '''
-2022 Wild Me
+The localizer (loc) is responsible for taking a (256, 256) tile image
 '''
 from os.path import exists, join
 from pathlib import Path
@@ -38,7 +38,7 @@ ANCHORS = [
     (11.2364, 10.0071),
 ]
 CLASS_LABEL_MAP = ['elephant_savanna']
-CONF_THRESH = 0.4
+LOC_THRESH = 0.4
 NMS_THRESH = 0.8
 
 ONNX_MODEL = 'scout.loc.5fbfff26.0.onnx'
@@ -46,8 +46,8 @@ ONNX_MODEL_PATH = join(PWD, 'models', 'onnx', ONNX_MODEL)
 ONNX_MODEL_HASH = '85a9378311d42b5143f74570136f32f50bf97c548135921b178b46ba7612b216'
 
 
-def fetch():
-    if exists(ONNX_MODEL_PATH):
+def fetch(pull=False):
+    if not pull and exists(ONNX_MODEL_PATH):
         onnx_model = ONNX_MODEL_PATH
     else:
         onnx_model = pooch.retrieve(
@@ -105,7 +105,7 @@ def predict(data, fill=True):
     return preds
 
 
-def post(preds, sizes, loc_thresh=CONF_THRESH, nms_thresh=NMS_THRESH):
+def post(preds, sizes, loc_thresh=LOC_THRESH, nms_thresh=NMS_THRESH):
     postprocess = Compose(
         [
             GetBoundingBoxes(NUM_CLASSES, ANCHORS, loc_thresh),
@@ -119,6 +119,18 @@ def post(preds, sizes, loc_thresh=CONF_THRESH, nms_thresh=NMS_THRESH):
     outputs = []
     for pred, size in zip(preds, sizes):
         output = ReverseLetterbox.apply([pred], INPUT_SIZE, size)
-        outputs.append(output[0])
+        output = output[0]
+        output = [
+            {
+                'l': detect.class_label,
+                'c': detect.confidence,
+                'x': detect.x_top_left,
+                'y': detect.y_top_left,
+                'w': detect.width,
+                'h': detect.height,
+            }
+            for detect in output
+        ]
+        outputs.append(output)
 
     return outputs

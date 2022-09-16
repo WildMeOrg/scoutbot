@@ -81,7 +81,7 @@ def test_tile_compute():
     from scoutbot.tile import compute
 
     img_filepath = abspath(join('examples', '1be4d40a-6fd0-42ce-da6c-294e45781f41.jpg'))
-    filepaths = compute(img_filepath)
+    shape, grids, filepaths = compute(img_filepath)
 
     assert len(filepaths) == 1252
     for filepath in filepaths:

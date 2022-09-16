@@ -7,44 +7,47 @@ from scoutbot import loc, wic
 
 
 def predict(filepath, wic_thresh, loc_thresh, nms_thresh):
+    wic_thresh /= 100.0
+    loc_thresh /= 100.0
+    nms_thresh /= 100.0
+
     # Load data
     img = cv2.imread(filepath)
     img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
     inputs = [filepath]
 
-    wic_thresh /= 100.0
-    loc_thresh /= 100.0
-    nms_thresh /= 100.0
-
     # Run WIC
     outputs = wic.post(wic.predict(wic.pre(inputs)))
-    output = outputs[0]
 
     # Get WIC confidence
+    output = outputs[0]
     wic_confidence = output.get('positive')
-
-    # Run Localizer
 
     loc_detections = []
     if wic_confidence > wic_thresh:
+
+        # Run Localizer
         data, sizes = loc.pre(inputs)
         preds = loc.predict(data)
         outputs = loc.post(preds, sizes, loc_thresh=loc_thresh, nms_thresh=nms_thresh)
-        detects = outputs[0]
 
+        # Format and render results
+        detects = outputs[0]
         for detect in detects:
-            if detect.confidence >= loc_thresh:
+            label = detect['l']
+            conf = detect['c']
+            if conf >= loc_thresh:
                 point1 = (
-                    int(np.around(detect.x_top_left)),
-                    int(np.around(detect.y_top_left)),
+                    int(np.around(detect['x'])),
+                    int(np.around(detect['y'])),
                 )
                 point2 = (
-                    int(np.around(detect.x_top_left + detect.width)),
-                    int(np.around(detect.y_top_left + detect.height)),
+                    int(np.around(detect['x'] + detect['w'])),
+                    int(np.around(detect['y'] + detect['h'])),
                 )
                 color = (255, 0, 0)
                 img = cv2.rectangle(img, point1, point2, color, 2)
-                loc_detections.append(f'{detect.class_label}: {detect.confidence:0.04f}')
+                loc_detections.append(f'{label}: {conf:0.04f}')
     loc_detections = '\n'.join(loc_detections)
 
     return img, wic_confidence, loc_detections
@@ -52,7 +55,7 @@ def predict(filepath, wic_thresh, loc_thresh, nms_thresh):
 
 interface = gr.Interface(
     fn=predict,
-    title='Scout Demo',
+    title='Wild Me Scout - Tile ML Demo',
     inputs=[
         gr.Image(type='filepath'),
         gr.Slider(label='WIC Confidence Threshold', value=20),
