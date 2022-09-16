@@ -57,19 +57,19 @@ jobs:
       - name: Tagged Docker Hub
         if: ${{ github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags/v') }}
         run: |
-          echo "IMAGE_TAG=latest >> $GITHUB_ENV
+          echo "IMAGE_TAG=latest" >> $GITHUB_ENV
 
       # Push bleeding-edge image (main tag) to registries
       - name: Bleeding Edge Docker Hub
         if: github.ref == 'refs/heads/main'
         run: |
-          echo "IMAGE_TAG=main >> $GITHUB_ENV
+          echo "IMAGE_TAG=main" >> $GITHUB_ENV
 
       # Push nightly image (nightly tag) to registries
       - name: Nightly Docker Hub
         if: github.event_name == 'schedule'
         run: |
-          echo "IMAGE_TAG=nightly >> $GITHUB_ENV
+          echo "IMAGE_TAG=nightly" >> $GITHUB_ENV
 
       # Build images
       - name: Build Codex
