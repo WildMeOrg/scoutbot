@@ -13,9 +13,12 @@ jobs:
       matrix:
         # Use the same Python version used the Dockerfile
         python-version: [3.9]
+
     env:
       OS: ubuntu-latest
       PYTHON: ${{ matrix.python-version }}
+      WIC_BATCH_SIZE: 16
+
     steps:
       # Checkout and env setup
       - name: Checkout code

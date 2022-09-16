@@ -12,32 +12,17 @@ Wild Me ScoutBot
 How to Install
 --------------
 
-You need to first install Anaconda on your machine.  Below are the instructions on how to install Anaconda on an Apple macOS machine, but it is possible to install on a Windows and Linux machine as well.  Consult the `official Anaconda page <https://www.anaconda.com>`_ to download and install on other systems.
+.. code-block:: console
+
+    (.venv) $ pip install scoutbot
+
+or, from source:
 
 .. code-block:: console
 
-   # Install Homebrew
-   /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-
-   # Install Anaconda and expose conda to the terminal
-   brew install anaconda
-   export PATH="/opt/homebrew/anaconda3/bin:$PATH"
-   conda init zsh
-   conda update conda
-
-Once Anaconda is installed, you will need an environment and the following packages installed
-
-.. code-block:: console
-
-   # Create Environment
-   conda create --name scoutbot
-   conda activate scoutbot
-
-   # Install Python dependencies
-   conda install pip
-
-   pip install -r requirements.txt
-   # conda install pytorch torchvision -c pytorch-nightly
+   git clone https://github.com/WildMeOrg/scoutbot
+   cd scoutbot
+   (.venv) $ pip install -e .
 
 How to Run
 ----------
@@ -57,7 +42,7 @@ or, you can run the image-base Gradio demo with:
 Docker
 ------
 
-The application can also be built into a Docker image and hosted on Docker Hub.
+The application can also be built into a Docker image and is hosted on Docker Hub as ``wildme/scoutbot:latest``.
 
 .. code-block:: console
 
@@ -73,7 +58,7 @@ The application can also be built into a Docker image and hosted on Docker Hub.
         --push \
         .
 
-To run:
+To run with Docker:
 
 .. code-block:: console
 
@@ -84,45 +69,57 @@ To run:
        --name scoutbot \
        wildme/scoutbot:latest
 
-Unit Tests
-----------
+Tests and Coverage
+------------------
 
-You can run the automated tests in the `tests/` folder by running `pytest`.  This will give an output of which tests have failed.  You may also get a coverage percentage by running `coverage html` and loading the `coverage/html/index.html` file in your browser.
-pytest
+You can run the automated tests in the ``tests/`` folder by running:
+
+.. code-block:: console
+
+    (.venv) $ pip install -r requirements.optional.txt
+    (.venv) $ pytest
+
+You may also get a coverage percentage by running:
+
+.. code-block:: console
+
+    (.venv) $ coverage html
+
+and open the `coverage/html/index.html` file in your browser.
 
 Building Documentation
 ----------------------
 
-There is Sphinx documentation in the `docs/` folder, which can be built with the code below:
+There is Sphinx documentation in the ``docs/`` folder, which can be built by running:
 
 .. code-block:: console
 
-    cd docs/
-    sphinx-build -M html . build/
+    (.venv) $ cd docs/
+    (.venv) $ pip install -r requirements.optional.txt
+    (.venv) $ sphinx-build -M html . build/
 
 Logging
 -------
 
-The script uses Python's built-in logging functionality called `logging`.  All print functions are replaced with `log.info` within this script, which sends the output to two places: 1) the terminal window, 2) the file `scoutbot.log`.  Get into the habit of writing text logs and keeping date-specific versions for comparison and debugging.
+The script uses Python's built-in logging functionality called ``logging``.  All print functions are replaced with :func:``log.info``, which sends the output to two places:
+
+    - 1. the terminal window, and
+    - 2. the file `scoutbot.log`
 
 Code Formatting
 ---------------
 
 It's recommended that you use ``pre-commit`` to ensure linting procedures are run
-on any code you write. (See also `pre-commit.com <https://pre-commit.com/>`_)
+on any code you write.  See `pre-commit.com <https://pre-commit.com/>`_ for more information.
 
 Reference `pre-commit's installation instructions <https://pre-commit.com/#install>`_ for software installation on your OS/platform. After you have the software installed, run ``pre-commit install`` on the command line. Now every time you commit to this project's code base the linter procedures will automatically run over the changed files.  To run pre-commit on files preemtively from the command line use:
 
 .. code-block:: console
 
-    git add .
-    pre-commit run
+    (.venv) $ pip install -r requirements.optional.txt
+    (.venv) $ pre-commit run --all-files
 
-    # or
-
-    pre-commit run --all-files
-
-The code base has been formatted by Brunette, which is a fork and more configurable version of Black (https://black.readthedocs.io/en/stable/).  Furthermore, try to conform to PEP8.  You should set up your preferred editor to use flake8 as its Python linter, but pre-commit will ensure compliance before a git commit is completed.  This will use the flake8 configuration within ``setup.cfg``, which ignores several errors and stylistic considerations.  See the ``setup.cfg`` file for a full and accurate listing of stylistic codes to ignore.
+The code base has been formatted by `Brunette <https://pypi.org/project/brunette/>`_, which is a fork and more configurable version of `Black <https://black.readthedocs.io/en/stable/>`_.  Furthermore, try to conform to ``PEP8``.  You should set up your preferred editor to use ``flake8`` as its Python linter, but pre-commit will ensure compliance before a git commit is completed.  This will use the ``flake8`` configuration within ``setup.cfg``, which ignores several errors and stylistic considerations.  See the ``setup.cfg`` file for a full and accurate listing of stylistic codes to ignore.
 
 
 .. |Tests| image:: https://github.com/WildMeOrg/scoutbot/actions/workflows/testing.yml/badge.svg?branch=main

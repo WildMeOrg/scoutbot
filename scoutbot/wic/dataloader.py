@@ -1,11 +1,13 @@
 # -*- coding: utf-8 -*-
+import os
+
 import numpy as np
 import PIL
 import torch
 import torchvision
 import utool as ut
 
-BATCH_SIZE = 16
+BATCH_SIZE = int(os.getenv('WIC_BATCH_SIZE', 256))
 INPUT_SIZE = 224
 
 

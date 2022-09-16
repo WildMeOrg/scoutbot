@@ -60,7 +60,7 @@ def fetch(pull=False):
 
     Args:
         pull (bool, optional): If :obj:`True`, use a downloaded version stored in
-            sthe local system's cache.  Defaults to :obj:`False`.
+            the local system's cache.  Defaults to :obj:`False`.
 
     Returns:
         str: local ONNX model file path.
@@ -94,8 +94,9 @@ def pre(inputs):
         inputs (list(str)): list of tile image filepaths (relative or absolute)
 
     Returns:
-        list ( list ( list ( list ( float ) ) ) ), list ( tuple ( int ) ): list of
-        transformed image data, and a list of each tile's original size
+        tuple ( list ( list ( list ( list ( float ) ) ) ), list ( tuple ( int ) ) ):
+            - list of transformed image data.
+            - list of each tile's original size.
     """
     transform = torchvision.transforms.ToTensor()
 

@@ -17,7 +17,26 @@ TILE_BORDERS = True
 
 def compute(img_filepath, grid1=True, grid2=True, ext=None, **kwargs):
     """
-    Compute the tiles for a given input image
+    Compute the tiles for a given input image and saves them to disk.
+
+    If a given tile has already been rendered to disk, it will not be recomputed.
+
+    Args:
+        img_filepath (str): image filepath (relative or absolute) to compute tiles for.
+        grid1 (bool, optional): If :obj:`True`, create a dense grid of tiles on the image.
+            Defaults to :obj:`True`.
+        grid2 (bool, optional): If :obj:`True`, create a secondary dense grid of tiles
+            on the image with a 50% offset.  Defaults to :obj:`True`.
+        ext (str, optional): The file extension of the resulting tile files.  If this value is
+            not specified, it will use the same extension as `img_filepath`.  Defaults
+            to :obj:`None`.
+        **kwargs: keyword arguments passed to :meth:`scoutbot.tile.tile_grid`
+
+    Returns:
+        tuple ( tuple ( int ), list ( dict ), list ( str ) ):
+            - the original image's shape as ``(h, w, c)``.
+            - list of grid coordinates as the output of :meth:`scoutbot.tile.tile_grid`.
+            - list of tile filepaths as the output of :meth:`scoutbot.tile.tile_filepath`.
     """
     assert exists(img_filepath)
     img = cv2.imread(img_filepath)
@@ -25,9 +44,9 @@ def compute(img_filepath, grid1=True, grid2=True, ext=None, **kwargs):
 
     grids = []
     if grid1:
-        grids += tile_grid(shape)
+        grids += tile_grid(shape, **kwargs)
     if grid2:
-        grids += tile_grid(shape, offset=TILE_WIDTH // 2, borders=False)
+        grids += tile_grid(shape, offset=TILE_WIDTH // 2, borders=False, **kwargs)
 
     filepaths = [tile_filepath(img_filepath, grid, ext=ext) for grid in grids]
     for grid, filepath in zip(grids, filepaths):
@@ -48,7 +67,6 @@ def tile_write(img, grid, filepath):
 
     Returns:
         bool: returns :obj:`True` if the tile's filepath exists on disk.
-
     """
     if exists(filepath):
         return True
