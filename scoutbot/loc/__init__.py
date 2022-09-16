@@ -1,6 +1,11 @@
 # -*- coding: utf-8 -*-
-'''
-The localizer (loc) is responsible for taking a (256, 256) tile image
+'''The localizer (LOC) returns bounding box detections on image tiles.
+
+This module defines how Localizer models are downloaded from an external CDN,
+how to load an image and prepare it for inference, demonstrates how to run the
+Localization ONNX model on this input, and finally how to convert this raw CNN
+output into usable detection bounding boxes with class labels and confidence
+scores.
 '''
 from os.path import exists, join
 from pathlib import Path

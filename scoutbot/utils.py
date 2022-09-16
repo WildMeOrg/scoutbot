@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 '''
-2022 Wild Me
+Scoutbot utilities file for common and handy functions.
 '''
 import logging
 from logging.handlers import TimedRotatingFileHandler

@@ -1,7 +1,11 @@
 # -*- coding: utf-8 -*-
-'''
-2022 Wild Me
-'''
+"""Aggregation (AGG) returns unified detects for an image given its individual tile detections
+
+This module defines how the tile-base localization detection results are aggregated
+at the image level.  This includes the ability to weight the importance of detections
+along the border of each tile within an image, and performing non-maximum suppression (NMS)
+on the combined results.
+"""
 import numpy as np
 import utool as ut
 
@@ -11,6 +15,9 @@ NMS_THRESH = 0.2
 
 
 def iou(box1, box2):
+    """
+    Computes the IoU (Intersection over Union) ratio for two bounding boxes.
+    """
     inter_xtl = max(box1['xtl'], box2['xtl'])
     inter_ytl = max(box1['ytl'], box2['ytl'])
     inter_xbr = min(box1['xbr'], box2['xbr'])
@@ -35,6 +42,10 @@ def iou(box1, box2):
 
 
 def demosaic(img_shape, tile_grids, loc_outputs, margin=MARGIN):
+    """
+    Demosaics a list of tiles and their respective detections back into the original
+    image's coordinate system.
+    """
     assert len(tile_grids) == len(loc_outputs)
 
     img_h, img_w = img_shape[:2]
@@ -125,6 +136,9 @@ def demosaic(img_shape, tile_grids, loc_outputs, margin=MARGIN):
 def compute(
     img_shape, tile_grids, loc_outputs, agg_thresh=AGG_THRESH, nms_thresh=NMS_THRESH
 ):
+    """
+    Compute the aggregated image-level detection results for a given list of tile-level detections
+    """
     from scoutbot.agg.py_cpu_nms import py_cpu_nms
 
     # Demosaic tile detection results and aggregate across the image

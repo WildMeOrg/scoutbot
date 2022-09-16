@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 '''
-2022 Wild Me
+
 '''
 from os.path import abspath, exists, join, split, splitext
 
@@ -66,6 +66,10 @@ def tile_write(img, grid, filepath):
 
 
 def tile_filepath(img_filepath, grid, ext=None):
+    """
+    Returns a suggested filepath for a tile given the original image filepath and the tile's grid
+    coordinates.
+    """
     x = grid.get('x')
     y = grid.get('y')
     w = grid.get('w')
@@ -86,6 +90,9 @@ def tile_filepath(img_filepath, grid, ext=None):
 def tile_grid(
     shape, size=TILE_SIZE, overlap=TILE_OVERLAP, offset=TILE_OFFSET, borders=TILE_BORDERS
 ):
+    """
+    Calculates a grid of tile coordinates for a given image.
+    """
     h_, w_ = shape[:2]
     w, h = size
     ol = overlap

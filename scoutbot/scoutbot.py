@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-ScoutBot CLI executable
+Coming Soon
 """
 import click
 
