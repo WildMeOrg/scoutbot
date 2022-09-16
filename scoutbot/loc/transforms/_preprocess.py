@@ -11,7 +11,7 @@ import logging
 import numpy as np
 from PIL import Image, ImageOps
 
-from .util import BaseMultiTransform
+from scoutbot.loc.transforms.util import BaseMultiTransform
 
 log = logging.getLogger(__name__)
 

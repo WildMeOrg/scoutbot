@@ -4,11 +4,13 @@
 #   Copyright EAVISE
 #
 
-from ._postprocess import (  # NOQA
+from scoutbot.loc.transforms import annotations  # NOQA
+from scoutbot.loc.transforms import detections  # NOQA
+from scoutbot.loc.transforms._postprocess import (  # NOQA
     GetBoundingBoxes,
     NonMaxSupression,
     ReverseLetterbox,
     TensorToBrambox,
 )
-from ._preprocess import Letterbox  # NOQA
-from .util import Compose  # NOQA
+from scoutbot.loc.transforms._preprocess import Letterbox  # NOQA
+from scoutbot.loc.transforms.util import Compose  # NOQA

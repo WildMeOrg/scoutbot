@@ -1,7 +1,9 @@
 name: Wheel
 
-# Build on every branch push, tag push, and pull request change:
-on: push
+on:
+  push:
+    branches:
+      - main
 
 jobs:
 
