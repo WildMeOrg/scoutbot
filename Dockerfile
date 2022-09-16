@@ -1,4 +1,4 @@
-FROM nvidia/cuda:11.7.1-cudnn8-runtime-ubuntu20.04
+FROM nvidia/cuda:11.6.0-cudnn8-runtime-ubuntu20.04
 
 ENV GRADIO_SERVER_NAME=0.0.0.0
 

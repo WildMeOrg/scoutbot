@@ -3,7 +3,10 @@ codecov:
 
 ignore:
   - "app.py"
+  - "app2.py"
   - "scoutbot/*/convert.py"
+  - "scoutbot/scoutbot.py"
+  - "scoutbot/loc/transforms"
 
 coverage:
   status:
