@@ -46,7 +46,7 @@ how the entire pipeline can be run on tiles or images, respectively.
 '''
 from scoutbot import agg, loc, tile, wic
 
-VERSION = '0.1.3'
+VERSION = '0.1.4'
 version = VERSION
 __version__ = VERSION
 

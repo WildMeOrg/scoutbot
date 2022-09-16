@@ -24,13 +24,10 @@ jobs:
       DOCKER_CLI_EXPERIMENTAL: enabled
 
     steps:
-      - uses: actions/checkout@v2
-        if: github.event_name == 'schedule'
+      - name: Checkout code
+        uses: nschloe/action-cached-lfs-checkout@v1.1.3
         with:
-          ref: main
-
-      - uses: actions/checkout@v2
-        if: github.event_name != 'schedule'
+          exclude: "scoutbot/*/models/pytorch/"
 
       - uses: docker/setup-qemu-action@v1
         name: Set up QEMU
