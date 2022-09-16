@@ -16,7 +16,9 @@ TILE_BORDERS = True
 
 
 def compute(img_filepath, grid1=True, grid2=True, ext=None, **kwargs):
-    """Compute the tiles for a given input image"""
+    """
+    Compute the tiles for a given input image
+    """
     assert exists(img_filepath)
     img = cv2.imread(img_filepath)
     shape = img.shape
@@ -35,6 +37,19 @@ def compute(img_filepath, grid1=True, grid2=True, ext=None, **kwargs):
 
 
 def tile_write(img, grid, filepath):
+    """
+    Write a single image's tile to disk using its grid coordinates and an output path.
+
+    Args:
+        img (numpy.ndarray): 3-dimentional Numpy array, the return from :func:`cv2.imread`
+        grid (dict): the grid coordinate dictionary, one of the returned dictionaries
+            from :meth:`scoutbot.tile.tile_grid`
+        filepath (str): the tile's full output filepath (relative or absolute)
+
+    Returns:
+        bool: returns :obj:`True` if the tile's filepath exists on disk.
+
+    """
     if exists(filepath):
         return True
 

@@ -10,6 +10,5 @@ Contents
 .. toctree::
 
    Home <self>
-   usage
    scoutbot
    cli

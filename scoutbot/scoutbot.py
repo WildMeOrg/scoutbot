@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-The lecture materials for Lecture 1: Dataset Prototyping and Visualization
+ScoutBot CLI executable
 """
 import click
 

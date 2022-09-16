@@ -11,3 +11,5 @@ coverage/
 gradio_cached_examples/
 __pycache__/
 docs/build/
+
+docs/_build/

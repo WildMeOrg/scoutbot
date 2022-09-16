@@ -14,7 +14,7 @@ How to Install
 
 You need to first install Anaconda on your machine.  Below are the instructions on how to install Anaconda on an Apple macOS machine, but it is possible to install on a Windows and Linux machine as well.  Consult the `official Anaconda page <https://www.anaconda.com>`_ to download and install on other systems.
 
-.. code:: bash
+.. code-block:: console
 
    # Install Homebrew
    /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
@@ -27,7 +27,7 @@ You need to first install Anaconda on your machine.  Below are the instructions 
 
 Once Anaconda is installed, you will need an environment and the following packages installed
 
-.. code:: bash
+.. code-block:: console
 
    # Create Environment
    conda create --name scoutbot
@@ -42,19 +42,24 @@ Once Anaconda is installed, you will need an environment and the following packa
 How to Run
 ----------
 
-It is recommended to use `ipython` and to copy sections of code into and inspecting the
+You can run the tile-base Gradio demo with:
 
-.. code:: bash
+.. code-block:: console
 
-   # Run the live demo
-   python app.py
+   (.venv) $ python app.py
+
+or, you can run the image-base Gradio demo with:
+
+.. code-block:: console
+
+   (.venv) $ python app2.py
 
 Docker
 ------
 
 The application can also be built into a Docker image and hosted on Docker Hub.
 
-.. code:: bash
+.. code-block:: console
 
     # linux/amd64
 
@@ -72,7 +77,7 @@ The application can also be built into a Docker image and hosted on Docker Hub.
 
 To run:
 
-.. code:: bash
+.. code-block:: console
 
     docker run \
        -it \
@@ -92,7 +97,7 @@ Building Documentation
 
 There is Sphinx documentation in the `docs/` folder, which can be built with the code below:
 
-.. code:: bash
+.. code-block:: console
 
     cd docs/
     sphinx-build -M html . build/
@@ -110,7 +115,7 @@ on any code you write. (See also `pre-commit.com <https://pre-commit.com/>`_)
 
 Reference `pre-commit's installation instructions <https://pre-commit.com/#install>`_ for software installation on your OS/platform. After you have the software installed, run ``pre-commit install`` on the command line. Now every time you commit to this project's code base the linter procedures will automatically run over the changed files.  To run pre-commit on files preemtively from the command line use:
 
-.. code:: bash
+.. code-block:: console
 
     git add .
     pre-commit run
@@ -127,7 +132,7 @@ The code base has been formatted by Brunette, which is a fork and more configura
     :alt: GitHub CI
 
 .. |Codecov| image:: https://codecov.io/gh/WildMeOrg/scoutbot/branch/main/graph/badge.svg?token=FR6ITMWQNI
-    :target: https://codecov.io/gh/WildMeOrg/scoutbot
+    :target: https://app.codecov.io/gh/WildMeOrg/scoutbot
     :alt: Codecov
 
 .. |Wheel| image:: https://github.com/WildMeOrg/scoutbot/actions/workflows/python-publish.yml/badge.svg

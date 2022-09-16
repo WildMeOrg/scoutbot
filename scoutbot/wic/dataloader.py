@@ -5,7 +5,7 @@ import torch
 import torchvision
 import utool as ut
 
-BATCH_SIZE = 2048
+BATCH_SIZE = 512
 INPUT_SIZE = 224
 
 

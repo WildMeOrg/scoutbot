@@ -47,6 +47,22 @@ ONNX_MODEL_HASH = '85a9378311d42b5143f74570136f32f50bf97c548135921b178b46ba7612b
 
 
 def fetch(pull=False):
+    """
+    Fetch the Localizer ONNX model file from a CDN if it does not exist locally.
+
+    This function will throw an AssertionError if the download fails or the
+    file otherwise does not exists locally on disk.
+
+    Args:
+        pull (bool, optional): If :obj:`True`, use a downloaded version stored in
+            sthe local system's cache.  Defaults to :obj:`False`.
+
+    Returns:
+        str: local ONNX model file path.
+
+    Raises:
+        AssertionError: If the model cannot be fetched.
+    """
     if not pull and exists(ONNX_MODEL_PATH):
         onnx_model = ONNX_MODEL_PATH
     else:
@@ -61,6 +77,21 @@ def fetch(pull=False):
 
 
 def pre(inputs):
+    """
+    Load a list of filepaths and return a corresponding list of the image
+    data as a 4-D list of floats.  The image data is loaded from disk, transformed
+    as needed, and is normalized to the input ranges that the Localizer ONNX model
+    expects.
+
+    This function will throw an error if any of the filepaths do not exist.
+
+    Args:
+        inputs (list(str)): list of tile image filepaths (relative or absolute)
+
+    Returns:
+        list ( list ( list ( list ( float ) ) ) ), list ( tuple ( int ) ): list of
+        transformed image data, and a list of each tile's original size
+    """
     transform = torchvision.transforms.ToTensor()
 
     data = []
@@ -80,6 +111,17 @@ def pre(inputs):
 
 
 def predict(data, fill=True):
+    """
+    Run neural network inference using the Localizer's ONNX model on preprocessed data.
+
+    Args:
+        data (list): list of transformed image data, the first return of :meth:`scoutbot.loc.pre`
+        fill (bool, optional): If :obj:`True`, fill any partial batches to the LOC `BATCH_SIZE`,
+            and then trim them after inference.  Defaults to :obj:`True`.
+
+    Returns:
+        list ( list ( float ) ): list of raw ONNX model outputs
+    """
     onnx_model = fetch()
 
     ort_session = ort.InferenceSession(
@@ -106,6 +148,38 @@ def predict(data, fill=True):
 
 
 def post(preds, sizes, loc_thresh=LOC_THRESH, nms_thresh=NMS_THRESH):
+    """
+    Apply a post-processing normalization of the raw ONNX network outputs.
+
+    The final output is a list of lists of dictionaries, each representing a single
+    detection.  Each dictionary has a structure with the following keys:
+
+        ::
+
+            {
+                'l': class_label (str)
+                'c': confidence (float)
+                'x': x_top_left (float)
+                'y': y_top_left (float)
+                'w': width (float)
+                'h': height (float)
+            }
+
+    The ``l`` label is the string class as used when the original
+    ONNX model was trained.
+
+    The ``c`` confidence value is a bounded float between ``0.0`` and
+    ``1.0`` (inclusive), but should not be treated as a probability.
+
+    The ``x``, ``y``, ``w``, ``h`` bounding box keys are in real pixel values.
+
+    Args:
+        preds (list): list of raw ONNX model outputs, the return of :meth:`scoutbot.loc.predict`
+        sizes (list): list of original tile sizes, the second return of :meth:`scoutbot.loc.pre`
+
+    Returns:
+        list ( list ( dict ) ): nested list of Localizer predictions
+    """
     postprocess = Compose(
         [
             GetBoundingBoxes(NUM_CLASSES, ANCHORS, loc_thresh),

@@ -6,8 +6,8 @@ ScoutBot API
    :caption: Contents:
 
 
-Tiles
------
+Tiles (TILE)
+------------
 
 .. automodule:: scoutbot.tile
    :members:
@@ -27,6 +27,14 @@ Localizer (LOC)
 ---------------
 
 .. automodule:: scoutbot.loc
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Aggregation (AGG)
+-----------------
+
+.. automodule:: scoutbot.agg
    :members:
    :undoc-members:
    :show-inheritance:

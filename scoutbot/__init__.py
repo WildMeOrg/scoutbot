@@ -37,7 +37,7 @@ Notes:
 '''
 from scoutbot import agg, loc, tile, wic
 
-VERSION = '0.1.0'
+VERSION = '0.1.1'
 version = VERSION
 __version__ = VERSION
 
