@@ -6,7 +6,6 @@
 # from enum import Enum
 
 from scoutbot.loc.transforms import box as b
-from scoutbot.loc.transforms.detections import detection as det
 
 __all__ = ['Annotation', 'ParserType', 'Parser']
 
@@ -84,6 +83,8 @@ class Annotation(b.Box):
             The obj can be both an :class:`~brambox.boxes.annotations.Annotation` or a :class:`~brambox.boxes.detections.Detection`.
             For Annotations every attribute is copied over, for Detections the flags are all set to **False**.
         """
+        from scoutbot.loc.transforms.detections import detection as det
+
         instance = super(Annotation, cls).create(obj)
 
         if obj is None:

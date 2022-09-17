@@ -6,7 +6,6 @@
 # from enum import Enum
 
 from scoutbot.loc.transforms import box as b
-from scoutbot.loc.transforms.annotations import annotation as anno
 
 __all__ = ['Detection', 'ParserType', 'Parser']
 
@@ -35,6 +34,8 @@ class Detection(b.Box):
             The obj can be both an :class:`~brambox.boxes.annotations.Annotation` or a :class:`~brambox.boxes.detections.Detection`.
             For Detections the confidence score is copied over, for Annotations it is set to 1.
         """
+        from scoutbot.loc.transforms.annotations import annotation as anno
+
         instance = super(Detection, cls).create(obj)
 
         if obj is None:
