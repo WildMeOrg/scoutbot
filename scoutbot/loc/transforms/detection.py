@@ -34,7 +34,7 @@ class Detection(b.Box):
             The obj can be both an :class:`~brambox.boxes.annotations.Annotation` or a :class:`~brambox.boxes.detections.Detection`.
             For Detections the confidence score is copied over, for Annotations it is set to 1.
         """
-        from scoutbot.loc.transforms.annotations import annotation as anno
+        from scoutbot.loc.transforms import annotation as anno
 
         instance = super(Detection, cls).create(obj)
 

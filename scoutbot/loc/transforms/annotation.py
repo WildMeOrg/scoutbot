@@ -83,7 +83,7 @@ class Annotation(b.Box):
             The obj can be both an :class:`~brambox.boxes.annotations.Annotation` or a :class:`~brambox.boxes.detections.Detection`.
             For Annotations every attribute is copied over, for Detections the flags are all set to **False**.
         """
-        from scoutbot.loc.transforms.detections import detection as det
+        from scoutbot.loc.transforms import detection as det
 
         instance = super(Annotation, cls).create(obj)
 

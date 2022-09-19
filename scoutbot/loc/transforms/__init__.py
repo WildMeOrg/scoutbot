@@ -4,9 +4,9 @@
 #   Copyright EAVISE
 #
 
-from scoutbot.loc.transforms import annotations  # NOQA
+from scoutbot.loc.transforms import annotation  # NOQA
 from scoutbot.loc.transforms import box  # NOQA
-from scoutbot.loc.transforms import detections  # NOQA
+from scoutbot.loc.transforms import detection  # NOQA
 from scoutbot.loc.transforms import util  # NOQA
 from scoutbot.loc.transforms._postprocess import (  # NOQA
     GetBoundingBoxes,
