@@ -9,6 +9,8 @@ on the combined results.
 import numpy as np
 import utool as ut
 
+from scoutbot import log
+
 MARGIN = 32.0
 AGG_THRESH = 0.4
 NMS_THRESH = 0.2
@@ -141,6 +143,8 @@ def compute(
     """
     from scoutbot.agg.py_cpu_nms import py_cpu_nms
 
+    log.info(f'Aggregating {len(tile_grids)} tiles onto {img_shape} canvas')
+
     # Demosaic tile detection results and aggregate across the image
     detects = demosaic(img_shape, tile_grids, loc_outputs)
 
@@ -164,5 +168,7 @@ def compute(
     keeps = py_cpu_nms(coords, confs, nms_thresh)
     final = ut.take(detects, keeps)
     final.sort(key=lambda val: val['c'], reverse=True)
+
+    log.info(f'Found {len(final)} detections')
 
     return final

@@ -15,6 +15,7 @@ import pooch
 import torch
 import utool as ut
 
+from scoutbot import log
 from scoutbot.wic.dataloader import (
     BATCH_SIZE,
     INPUT_SIZE,
@@ -58,6 +59,8 @@ def fetch(pull=False):
             progressbar=True,
         )
         assert exists(onnx_model)
+
+    log.info(f'WIC Model: {onnx_model}')
 
     return onnx_model
 
@@ -103,6 +106,8 @@ def predict(data, fill=False):
         list ( list ( float ) ): list of raw ONNX model outputs
     """
     onnx_model = fetch()
+
+    log.info(f'Running WIC inference on {len(data)} tiles')
 
     ort_session = ort.InferenceSession(
         onnx_model, providers=['CUDAExecutionProvider', 'CPUExecutionProvider']

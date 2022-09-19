@@ -9,3 +9,8 @@ include LICENSE
 # Include ONNX files (disabled, too large for PyPI)
 # include scoutbot/loc/models/onnx/scout.loc.5fbfff26.0.onnx
 # include scoutbot/wic/models/onnx/scout.wic.5fbfff26.3.0.onnx
+
+# Include examples files for testing
+include examples/1be4d40a-6fd0-42ce-da6c-294e45781f41.jpg
+include examples/0d01a14e-311d-e153-356f-8431b6996b84.true.jpg
+include examples/1e8372e4-357d-26e6-d7fd-0e0ae402463a.true.jpg

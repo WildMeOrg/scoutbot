@@ -7,6 +7,8 @@ from os.path import abspath, exists, join, split, splitext
 import cv2
 import numpy as np
 
+from scoutbot import log
+
 TILE_WIDTH = 256
 TILE_HEIGHT = 256
 TILE_SIZE = (TILE_WIDTH, TILE_HEIGHT)
@@ -42,6 +44,8 @@ def compute(img_filepath, grid1=True, grid2=True, ext=None, **kwargs):
     img = cv2.imread(img_filepath)
     shape = img.shape
 
+    log.info(f'Computing tiles (grid1={grid1}, grid2={grid2}) on {img_filepath}')
+
     grids = []
     if grid1:
         grids += tile_grid(shape, **kwargs)
@@ -51,6 +55,8 @@ def compute(img_filepath, grid1=True, grid2=True, ext=None, **kwargs):
     filepaths = [tile_filepath(img_filepath, grid, ext=ext) for grid in grids]
     for grid, filepath in zip(grids, filepaths):
         assert tile_write(img, grid, filepath)
+
+    log.info(f'Rendered {len(filepaths)} tiles')
 
     return shape, grids, filepaths
 

@@ -61,8 +61,32 @@ jobs:
         with:
           path: ./dist/*.tar.gz
 
-  upload_pypi:
+  test_wheel:
     needs: [build_wheels, build_sdist]
+    runs-on: ubuntu-latest
+    # upload to PyPI on every tag starting with 'v'
+    if: github.event_name == 'push'  # && startsWith(github.event.ref, 'refs/tags/v')
+    steps:
+      - uses: actions/setup-python@v2
+        name: Install Python
+        with:
+          python-version: '3.8'
+
+      - uses: actions/download-artifact@v2
+        with:
+          name: artifact
+          path: dist
+
+      - name: Install wheel
+        run: |
+          pip install --upgrade pip
+          pip install wheel
+          pip install dist/*.whl
+          ls -al dist/
+          python -c "import scoutbot; scoutbot.fetch();"
+
+  upload_pypi:
+    needs: [test_wheel]
     runs-on: ubuntu-latest
     # upload to PyPI on every tag starting with 'v'
     if: github.event_name == 'push'  # && startsWith(github.event.ref, 'refs/tags/v')

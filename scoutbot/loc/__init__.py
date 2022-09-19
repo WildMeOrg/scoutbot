@@ -18,6 +18,7 @@ import torch
 import torchvision
 import utool as ut
 
+from scoutbot import log
 from scoutbot.loc.transforms import (
     Compose,
     GetBoundingBoxes,
@@ -77,6 +78,7 @@ def fetch(pull=False):
             progressbar=True,
         )
         assert exists(onnx_model)
+    log.info(f'LOC Model: {onnx_model}')
 
     return onnx_model
 
@@ -129,6 +131,8 @@ def predict(data, fill=True):
         list ( list ( float ) ): list of raw ONNX model outputs
     """
     onnx_model = fetch()
+
+    log.info(f'Running WIC inference on {len(data)} tiles')
 
     ort_session = ort.InferenceSession(
         onnx_model, providers=['CUDAExecutionProvider', 'CPUExecutionProvider']

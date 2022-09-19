@@ -44,7 +44,12 @@ how the entire pipeline can be run on tiles or images, respectively.
         nms_thresh=agg_nms_thresh,
     )
 '''
-from scoutbot import agg, loc, tile, wic
+from scoutbot import utils
+
+log = utils.init_logging()
+
+
+from scoutbot import agg, loc, tile, wic  # NOQA
 
 VERSION = '0.1.6'
 version = VERSION
