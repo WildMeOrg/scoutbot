@@ -18,6 +18,8 @@ WORKDIR /code
 COPY ./ /code
 
 RUN pip3 install --no-cache-dir -r requirements.txt \
- && pip3 install -e .
+ && pip3 install -e . \
+ && pip3 uninstall -y onnxruntime \
+ && pip3 install onnxruntime-gpu
 
 CMD python3 app.py

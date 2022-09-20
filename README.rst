@@ -24,6 +24,13 @@ or, from source:
    cd scoutbot
    (.venv) $ pip install -e .
 
+To then add GPU acceleration, you need to replace `onnxruntime` with `onnxruntime-gpu`:
+
+.. code-block:: console
+
+   (.venv) $ pip uninstall -y onnxruntime
+   (.venv) $ pip install onnxruntime-gpu
+
 How to Run
 ----------
 

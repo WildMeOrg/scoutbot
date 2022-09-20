@@ -3,7 +3,7 @@ cryptography
 gradio
 imgaug
 numpy
-onnxruntime-gpu
+onnxruntime
 opencv-python-headless
 Pillow
 pooch
