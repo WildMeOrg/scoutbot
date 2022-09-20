@@ -172,7 +172,12 @@ def compute(
     """
     from scoutbot.agg.py_cpu_nms import py_cpu_nms
 
+    assert len(tile_grids) == len(loc_outputs)
+
     log.info(f'Aggregating {len(tile_grids)} tiles onto {img_shape} canvas')
+
+    if len(tile_grids) == 0:
+        return []
 
     # Demosaic tile detection results and aggregate across the image
     detects = demosaic(img_shape, tile_grids, loc_outputs)

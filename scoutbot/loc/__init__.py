@@ -100,6 +100,8 @@ def pre(inputs):
             - list of transformed image data.
             - list of each tile's original size.
     """
+    assert len(inputs) > 0
+
     transform = torchvision.transforms.ToTensor()
 
     data = []
@@ -132,7 +134,10 @@ def predict(data, fill=True):
     """
     onnx_model = fetch()
 
-    log.info(f'Running WIC inference on {len(data)} tiles')
+    log.info(f'Running LOC inference on {len(data)} tiles')
+
+    if len(data) == 0:
+        return []
 
     ort_session = ort.InferenceSession(
         onnx_model, providers=['CUDAExecutionProvider', 'CPUExecutionProvider']
@@ -190,6 +195,11 @@ def post(preds, sizes, loc_thresh=LOC_THRESH, nms_thresh=NMS_THRESH):
     Returns:
         list ( list ( dict ) ): nested list of Localizer predictions
     """
+    assert len(preds) == len(sizes)
+
+    if len(preds) == 0:
+        return []
+
     postprocess = Compose(
         [
             GetBoundingBoxes(NUM_CLASSES, ANCHORS, loc_thresh),

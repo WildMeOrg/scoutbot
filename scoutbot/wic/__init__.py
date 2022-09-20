@@ -80,6 +80,8 @@ def pre(inputs):
     Returns:
         list ( list ( list ( list ( float ) ) ) ): list of transformed image data
     """
+    assert len(inputs) > 0
+
     transform = _init_transforms()
     dataset = ImageFilePathList(inputs, transform=transform)
     dataloader = torch.utils.data.DataLoader(
@@ -108,6 +110,9 @@ def predict(data, fill=False):
     onnx_model = fetch()
 
     log.info(f'Running WIC inference on {len(data)} tiles')
+
+    if len(data) == 0:
+        return []
 
     ort_session = ort.InferenceSession(
         onnx_model, providers=['CUDAExecutionProvider', 'CPUExecutionProvider']

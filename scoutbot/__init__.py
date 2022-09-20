@@ -56,7 +56,7 @@ log = utils.init_logging()
 
 from scoutbot import agg, loc, tile, wic  # NOQA
 
-VERSION = '0.1.10'
+VERSION = '0.1.11'
 version = VERSION
 __version__ = VERSION
 
