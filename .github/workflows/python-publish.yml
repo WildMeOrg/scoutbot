@@ -20,7 +20,7 @@ jobs:
       - name: Checkout code
         uses: nschloe/action-cached-lfs-checkout@v1.1.3
         with:
-          include: "*.0.onnx"
+          exclude: "scoutbot/*/models/pytorch/"
 
       - uses: actions/setup-python@v2
         name: Install Python
@@ -44,7 +44,7 @@ jobs:
       - name: Checkout code
         uses: nschloe/action-cached-lfs-checkout@v1.1.3
         with:
-          include: "*.0.onnx"
+          exclude: "scoutbot/*/models/pytorch/"
 
       - uses: actions/setup-python@v2
         name: Install Python
@@ -82,8 +82,15 @@ jobs:
           pip install --upgrade pip
           pip install wheel
           pip install dist/*.whl
-          ls -al dist/
-          python -c "import scoutbot; scoutbot.fetch();"
+
+      - name: Test module
+        run: |
+          python -c "import scoutbot; scoutbot.fetch(); scoutbot.example();"
+
+      - name: Test CLI
+        run: |
+          scoutbot fetch
+          scoutbot example
 
   upload_pypi:
     needs: [test_wheel]

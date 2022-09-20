@@ -7,6 +7,7 @@ import json
 from os.path import exists
 
 import click
+import pooch
 import utool as ut
 
 import scoutbot
@@ -100,6 +101,30 @@ def fetch():
     scoutbot.fetch()
 
 
+@click.command('example')
+def example():
+    """
+    Run a test of the pipeline on an example image
+    """
+    TEST_IMAGE = 'scout.example.jpg'
+    TEST_IMAGE_HASH = (
+        '786a940b062a90961f409539292f09144c3dbdbc6b6faa64c3e764d63d55c988'  # NOQA
+    )
+
+    img_filepath = pooch.retrieve(
+        url=f'https://wildbookiarepository.azureedge.net/data/{TEST_IMAGE}',
+        known_hash=TEST_IMAGE_HASH,
+        progressbar=True,
+    )
+    assert exists(img_filepath)
+
+    log.info(f'Running pipeline on image: {img_filepath}')
+
+    detects = scoutbot.pipeline(img_filepath)
+
+    log.info(ut.repr3(detects))
+
+
 @click.group()
 def cli():
     """
@@ -110,6 +135,7 @@ def cli():
 
 cli.add_command(fetch)
 cli.add_command(pipeline)
+cli.add_command(example)
 
 
 if __name__ == '__main__':
