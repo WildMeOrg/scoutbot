@@ -19,6 +19,35 @@ NMS_THRESH = 0.2
 def iou(box1, box2):
     """
     Computes the IoU (Intersection over Union) ratio for two bounding boxes.
+
+    Each box dictionary must have a structure with the following keys:
+
+        ::
+
+            {
+                'xtl': x_top_left (int)
+                'ytl': y_top_left (int)
+                'xbr': x_bottom_right (int)
+                'ybr': y_bottom_right (int)
+            }
+
+    The ``(xtl, ytl)`` coordinate is the top-left corner of the box.
+
+    The ``(xbr, ybr)`` coordinate is the opposite bottom-right corner of the box.
+
+    The order of the boxes does not impact the calculation of the intersection
+    and union values.
+
+    Args:
+        box1 (dict): a dictionary of the first bounding box's dimensions
+        box2 (dict): a dictionary of the second bounding box's dimensions
+
+    Returns:
+        tuple ( int, int, int, int ):
+            - the pixel area of the first box
+            - the pixel area of the second box
+            - the pixel area of the intersection (overlapping area) between the boxes
+            - the pixel area of the union (combined area) between the boxes
     """
     inter_xtl = max(box1['xtl'], box2['xtl'])
     inter_ytl = max(box1['ytl'], box2['ytl'])
@@ -139,7 +168,7 @@ def compute(
     img_shape, tile_grids, loc_outputs, agg_thresh=AGG_THRESH, nms_thresh=NMS_THRESH
 ):
     """
-    Compute the aggregated image-level detection results for a given list of tile-level detections
+    Compute the aggregated image-level detection results for a given list of tile-level detections.
     """
     from scoutbot.agg.py_cpu_nms import py_cpu_nms
 
