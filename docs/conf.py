@@ -37,6 +37,7 @@ extensions = [
     'sphinx.ext.viewcode',
     'sphinx.ext.imgmath',
     'sphinx.ext.napoleon',
+    'sphinx_click',
 ]
 
 intersphinx_mapping = {

@@ -6,7 +6,6 @@ ScoutBot CLI
    :caption: Contents:
 
 
-.. automodule:: scoutbot.scoutbot
-   :members:
-   :undoc-members:
-   :show-inheritance:
+.. click:: scoutbot.scoutbot:cli
+   :prog: scoutbot
+   :nested: full

@@ -44,6 +44,11 @@ how the entire pipeline can be run on tiles or images, respectively.
         nms_thresh=agg_nms_thresh,
     )
 '''
+from os.path import exists
+
+import pooch
+import utool as ut
+
 from scoutbot import utils
 
 log = utils.init_logging()
@@ -139,3 +144,23 @@ def pipeline(
     )
 
     return detects
+
+
+def example():
+    TEST_IMAGE = 'scout.example.jpg'
+    TEST_IMAGE_HASH = (
+        '786a940b062a90961f409539292f09144c3dbdbc6b6faa64c3e764d63d55c988'  # NOQA
+    )
+
+    img_filepath = pooch.retrieve(
+        url=f'https://wildbookiarepository.azureedge.net/data/{TEST_IMAGE}',
+        known_hash=TEST_IMAGE_HASH,
+        progressbar=True,
+    )
+    assert exists(img_filepath)
+
+    log.info(f'Running pipeline on image: {img_filepath}')
+
+    detects = pipeline(img_filepath)
+
+    log.info(ut.repr3(detects))
