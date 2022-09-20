@@ -8,6 +8,7 @@ opencv-python-headless
 Pillow
 pooch
 rich
+sphinx-click
 torch
 torchvision
 tqdm
