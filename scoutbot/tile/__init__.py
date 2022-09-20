@@ -30,8 +30,8 @@ def compute(img_filepath, grid1=True, grid2=True, ext=None, **kwargs):
         grid2 (bool, optional): If :obj:`True`, create a secondary dense grid of tiles
             on the image with a 50% offset.  Defaults to :obj:`True`.
         ext (str, optional): The file extension of the resulting tile files.  If this value is
-            not specified, it will use the same extension as `img_filepath`.  Defaults
-            to :obj:`None`.
+            not specified, it will use the same extension as `img_filepath`.  Passed as input
+            to :meth:`scoutbot.tile.tile_filepath`.  Defaults to :obj:`None`.
         **kwargs: keyword arguments passed to :meth:`scoutbot.tile.tile_grid`
 
     Returns:
@@ -93,6 +93,17 @@ def tile_filepath(img_filepath, grid, ext=None):
     """
     Returns a suggested filepath for a tile given the original image filepath and the tile's grid
     coordinates.
+
+    Args:
+        img_filepath (str): image filepath (relative or absolute)
+        grid (dict): a dictionary of one grid coordinate, one output of
+            :meth:`scoutbot.tile.tile_grid`
+        ext (str, optional): The file extension of the resulting tile files.  If this value is
+            not specified, it will use the same extension as `img_filepath`.  Defaults
+            to :obj:`None`.
+
+    Returns:
+        str: the suggested absolute filepath to store the tile
     """
     x = grid.get('x')
     y = grid.get('y')
@@ -116,6 +127,34 @@ def tile_grid(
 ):
     """
     Calculates a grid of tile coordinates for a given image.
+
+    The final output is a list of lists of dictionaries, each representing a single
+    tile coordinate.  Each dictionary has a structure with the following keys:
+
+        ::
+
+            {
+                'x': x_top_left (int)
+                'y': y_top_left (int)
+                'w': width (int)
+                'h': height (int)
+                'b': border (bool)
+            }
+
+    The ``x``, ``y``, ``w``, ``h`` bounding box keys are in real pixel values.
+
+    The ``b`` key is :obj:`True` if the grid coordinate is on the border of the image.
+
+    Args:
+        shape (tuple): the image's shape as ``(h, w, c)`` or ``(h, w)``
+        size (tuple): the tile's shape as ``(w, h)``
+        overlap (int): The amount of pixel overlap between each tile, for both the x-axis
+            and the y-axis.
+        offset (int): The amount of pixel offset for the entire grid
+        borders (bool): If :obj:`True`, include a set of border-only tiles.  Defaults to :obj:`True`.
+
+    Returns:
+        list ( dict ): a list of grid coordinate dictionaries
     """
     h_, w_ = shape[:2]
     w, h = size
