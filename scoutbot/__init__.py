@@ -146,6 +146,113 @@ def pipeline(
     return detects
 
 
+def batch(
+    filepaths,
+    wic_thresh=wic.WIC_THRESH,
+    loc_thresh=loc.LOC_THRESH,
+    loc_nms_thresh=loc.NMS_THRESH,
+    agg_thresh=agg.AGG_THRESH,
+    agg_nms_thresh=agg.NMS_THRESH,
+):
+    """
+    Run the ML pipeline on a given batch of image filepaths and return the detections
+    in a corresponding list.  The output is a list of outputs matching the output of
+    :func:`scoutbot.pipeline`, except the processing is done in batch and is much faster.
+
+    The final output is a list of lists of dictionaries, each representing a
+    single detection.  Each dictionary has a structure with the following keys:
+
+        ::
+
+            {
+                'l': class_label (str)
+                'c': confidence (float)
+                'x': x_top_left (float)
+                'y': y_top_left (float)
+                'w': width (float)
+                'h': height (float)
+            }
+
+    Args:
+        filepaths (list): list of str image filepath (relative or absolute)
+
+    Returns:
+        list ( list ( dict ) ) : corresponding list of lists of predictions
+    """
+    import utool as ut
+
+    # Run tiling
+    batch = {}
+    for filepath in filepaths:
+        img_shape, tile_grids, tile_filepaths = tile.compute(filepath)
+        data = {
+            'shape': img_shape,
+            'grids': tile_grids,
+            'filepaths': tile_filepaths,
+            'loc': {
+                'grids': [],
+                'outputs': [],
+            },
+        }
+        batch[filepath] = data
+
+    # Run WIC
+    tile_img_filepaths = []
+    tile_grids = []
+    tile_filepaths = []
+    for filepath in filepaths:
+        data = batch[filepath]
+        grids = data['grids']
+        filepaths = data['filepaths']
+        assert len(grids) == len(filepaths)
+        tile_img_filepaths += [filepath] * len(grids)
+        tile_grids += grids
+        tile_filepaths += filepaths
+
+    wic_outputs = wic.post(wic.predict(wic.pre(tile_filepaths)))
+
+    # Threshold for WIC
+    flags = [wic_output.get('positive') >= wic_thresh for wic_output in wic_outputs]
+    loc_tile_img_filepaths = ut.compress(tile_img_filepaths, flags)
+    loc_tile_grids = ut.compress(tile_grids, flags)
+    loc_tile_filepaths = ut.compress(tile_filepaths, flags)
+
+    # Run localizer
+    loc_data, loc_sizes = loc.pre(loc_tile_filepaths)
+    loc_preds = loc.predict(loc_data)
+    loc_outputs = loc.post(
+        loc_preds, loc_sizes, loc_thresh=loc_thresh, nms_thresh=loc_nms_thresh
+    )
+    assert len(loc_tile_grids) == len(loc_outputs)
+
+    for filepath, loc_tile_grid, loc_output in zip(
+        loc_tile_img_filepaths, loc_tile_grids, loc_outputs
+    ):
+        batch[filepath]['loc']['grids'].append(loc_tile_grid)
+        batch[filepath]['loc']['outputs'].append(loc_output)
+
+    # Run Aggregation
+    detects_list = []
+    for filepath in filepaths:
+        data = batch[filepath]
+
+        img_shape = data['shape']
+        loc_tile_grids = data['loc']['grids']
+        loc_outputs = data['loc']['outputs']
+        assert len(loc_tile_grids) == len(loc_outputs)
+
+        detects = agg.compute(
+            img_shape,
+            loc_tile_grids,
+            loc_outputs,
+            agg_thresh=agg_thresh,
+            nms_thresh=agg_nms_thresh,
+        )
+        detects_list.append(detects)
+
+    return detects_list
+
+
 def example():
     TEST_IMAGE = 'scout.example.jpg'
     TEST_IMAGE_HASH = (
