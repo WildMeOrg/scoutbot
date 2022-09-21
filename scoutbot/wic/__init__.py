@@ -13,10 +13,11 @@ import numpy as np
 import onnxruntime as ort
 import pooch
 import torch
+import tqdm
 import utool as ut
 
 from scoutbot import log
-from scoutbot.wic.dataloader import (
+from scoutbot.wic.dataloader import (  # NOQA
     BATCH_SIZE,
     INPUT_SIZE,
     ImageFilePathList,
@@ -65,7 +66,7 @@ def fetch(pull=False):
     return onnx_model
 
 
-def pre(inputs):
+def pre(inputs, batch_size=BATCH_SIZE):
     """
     Load a list of filepaths and return a corresponding list of the image
     data as a 4-D list of floats.  The image data is loaded from disk, transformed
@@ -78,66 +79,56 @@ def pre(inputs):
         inputs (list(str)): list of tile image filepaths (relative or absolute)
 
     Returns:
-        list ( list ( list ( list ( float ) ) ) ): list of transformed image data
+        generator ( list ( list ( list ( list ( float ) ) ) ) ) : generator ->
+        list of transformed image data
     """
     assert len(inputs) > 0
+
+    log.info(f'Preprocessing {len(inputs)} WIC inputs in batches of {batch_size}')
 
     transform = _init_transforms()
     dataset = ImageFilePathList(inputs, transform=transform)
     dataloader = torch.utils.data.DataLoader(
-        dataset, batch_size=BATCH_SIZE, num_workers=0, pin_memory=False
+        dataset, batch_size=batch_size, num_workers=8, pin_memory=False
     )
 
-    data = []
-    for (data_,) in dataloader:
-        data += data_.tolist()
-
-    return data
+    for (data,) in dataloader:
+        yield data.numpy().astype(np.float32)
 
 
-def predict(data, fill=False):
+def predict(gen):
     """
     Run neural network inference using the WIC's ONNX model on preprocessed data.
 
     Args:
-        data (list): list of transformed image data, the return of :meth:`scoutbot.wic.pre`
-        fill (bool, optional): If :obj:`True`, fill any partial batches to the WIC `BATCH_SIZE`,
-            and then trim them after inference.  Defaults to :obj:`False`.
+        gen (generator): generator of batches of transformed image data, the
+            return of :meth:`scoutbot.wic.pre`
 
     Returns:
-        list ( list ( float ) ): list of raw ONNX model outputs
+        generator ( list ( list ( float ) ) ): generator -> list of raw ONNX
+        model outputs
     """
     onnx_model = fetch()
 
-    log.info(f'Running WIC inference on {len(data)} tiles')
-
-    if len(data) == 0:
-        return []
+    log.info('Running WIC inference')
 
     ort_session = ort.InferenceSession(
         onnx_model, providers=['CUDAExecutionProvider', 'CPUExecutionProvider']
     )
 
-    preds = []
-    for chunk in ut.ichunks(data, BATCH_SIZE):
-        trim = len(chunk)
-        if fill:
-            while (len(chunk)) < BATCH_SIZE:
-                chunk.append(
-                    np.random.randn(3, INPUT_SIZE, INPUT_SIZE).astype(np.float32)
-                )
-        input_ = np.array(chunk, dtype=np.float32)
-
-        pred_ = ort_session.run(
-            None,
-            {'input': input_},
-        )
-        preds += pred_[0].tolist()[:trim]
-
-    return preds
+    for chunk in tqdm.tqdm(gen):
+        if len(chunk) == 0:
+            preds = []
+        else:
+            pred = ort_session.run(
+                None,
+                {'input': chunk},
+            )
+            preds = pred[0]
+        yield preds
 
 
-def post(preds):
+def post(gen):
     """
     Apply a post-processing normalization of the raw ONNX network outputs.
 
@@ -145,10 +136,14 @@ def post(preds):
     and the values are their corresponding confidence values.
 
     Args:
-        preds (list): list of raw ONNX model outputs, the return of :meth:`scoutbot.wic.predict`
+        gen (generator): generator of batches of raw ONNX model
+            outputs, the return of :meth:`scoutbot.wic.predict`
 
     Returns:
         list ( dict ): list of WIC predictions
     """
-    outputs = [dict(zip(ONNX_CLASSES, pred)) for pred in preds]
+    # Exhaust generator and format output
+    log.info('Postprocessing WIC outputs')
+
+    outputs = [dict(zip(ONNX_CLASSES, pred.tolist())) for pred in ut.flatten(gen)]
     return outputs

@@ -39,36 +39,36 @@ def fetch():
     '--output',
     help='Path to output JSON (if unspecified, results are printed to screen)',
     default=None,
-    type=click.IntRange(0, 100, clamp=True),
+    type=str,
 )
 @click.option(
     '--wic_thresh',
     help='Whole Image Classifier (WIC) confidence threshold',
-    default=wic.WIC_THRESH,
+    default=int(wic.WIC_THRESH * 100),
     type=click.IntRange(0, 100, clamp=True),
 )
 @click.option(
     '--loc_thresh',
     help='Localizer (LOC) confidence threshold',
-    default=loc.LOC_THRESH,
+    default=int(loc.LOC_THRESH * 100),
     type=click.IntRange(0, 100, clamp=True),
 )
 @click.option(
     '--loc_nms_thresh',
     help='Localizer (LOC) non-maximum suppression (NMS) threshold',
-    default=loc.NMS_THRESH,
+    default=int(loc.NMS_THRESH * 100),
     type=click.IntRange(0, 100, clamp=True),
 )
 @click.option(
     '--agg_thresh',
     help='Aggregation (AGG) confidence threshold',
-    default=agg.AGG_THRESH,
+    default=int(agg.AGG_THRESH * 100),
     type=click.IntRange(0, 100, clamp=True),
 )
 @click.option(
     '--agg_nms_thresh',
     help='Aggregation (AGG) non-maximum suppression (NMS) threshold',
-    default=agg.NMS_THRESH,
+    default=int(agg.NMS_THRESH * 100),
     type=click.IntRange(0, 100, clamp=True),
 )
 def pipeline(
@@ -99,7 +99,7 @@ def pipeline(
         log.info(ut.repr3(detects))
 
 
-@click.command()
+@click.command('batch')
 @click.argument(
     'filepaths',
     nargs=-1,
@@ -109,43 +109,43 @@ def pipeline(
     '--output',
     help='Path to output JSON (if unspecified, results are printed to screen)',
     default=None,
-    type=click.IntRange(0, 100, clamp=True),
+    type=str,
 )
 @click.option(
     '--wic_thresh',
     help='Whole Image Classifier (WIC) confidence threshold',
-    default=wic.WIC_THRESH,
+    default=int(wic.WIC_THRESH * 100),
     type=click.IntRange(0, 100, clamp=True),
 )
 @click.option(
     '--loc_thresh',
     help='Localizer (LOC) confidence threshold',
-    default=loc.LOC_THRESH,
+    default=int(loc.LOC_THRESH * 100),
     type=click.IntRange(0, 100, clamp=True),
 )
 @click.option(
     '--loc_nms_thresh',
     help='Localizer (LOC) non-maximum suppression (NMS) threshold',
-    default=loc.NMS_THRESH,
+    default=int(loc.NMS_THRESH * 100),
     type=click.IntRange(0, 100, clamp=True),
 )
 @click.option(
     '--agg_thresh',
     help='Aggregation (AGG) confidence threshold',
-    default=agg.AGG_THRESH,
+    default=int(agg.AGG_THRESH * 100),
     type=click.IntRange(0, 100, clamp=True),
 )
 @click.option(
     '--agg_nms_thresh',
     help='Aggregation (AGG) non-maximum suppression (NMS) threshold',
-    default=agg.NMS_THRESH,
+    default=int(agg.NMS_THRESH * 100),
     type=click.IntRange(0, 100, clamp=True),
 )
 def batch(
     filepaths, output, wic_thresh, loc_thresh, loc_nms_thresh, agg_thresh, agg_nms_thresh
 ):
     """
-    Run the ScoutBot pipeline on an input image filepath
+    Run the ScoutBot pipeline in batch on a list of input image filepaths
     """
     wic_thresh /= 100.0
     loc_thresh /= 100.0

@@ -28,19 +28,20 @@ def test_wic_onnx_pipeline():
 
     data = pre(inputs)
 
-    assert len(data) == 1
-    assert len(data[0]) == 3
-    assert len(data[0][0]) == INPUT_SIZE
-    assert len(data[0][0][0]) == INPUT_SIZE
+    temp = next(data)
+    assert temp.shape == (1, 3, INPUT_SIZE, INPUT_SIZE)
 
+    data = pre(inputs)
     preds = predict(data)
 
-    assert len(preds) == 1
-    assert len(preds[0]) == 2
-    assert preds[0][1] > preds[0][0]
-    assert abs(preds[0][0] - 0.00001503) < 1e-4
-    assert abs(preds[0][1] - 0.99998497) < 1e-4
+    temp = next(preds)
+    assert temp.shape == (1, 2)
+    assert temp[0][1] > temp[0][0]
+    assert abs(temp[0][0] - 0.00001503) < 1e-4
+    assert abs(temp[0][1] - 0.99998497) < 1e-4
 
+    data = pre(inputs)
+    preds = predict(data)
     outputs = post(preds)
 
     assert len(outputs) == 1
@@ -49,3 +50,5 @@ def test_wic_onnx_pipeline():
     assert output['positive'] > output['negative']
     assert abs(output['negative'] - 0.00001503) < 1e-4
     assert abs(output['positive'] - 0.99998497) < 1e-4
+    assert isinstance(output['negative'], float)
+    assert isinstance(output['positive'], float)

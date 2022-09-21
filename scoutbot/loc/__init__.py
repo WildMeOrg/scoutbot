@@ -16,6 +16,7 @@ import onnxruntime as ort
 import pooch
 import torch
 import torchvision
+import tqdm
 import utool as ut
 
 from scoutbot import log
@@ -96,73 +97,84 @@ def pre(inputs):
         inputs (list(str)): list of tile image filepaths (relative or absolute)
 
     Returns:
-        tuple ( list ( list ( list ( list ( float ) ) ) ), list ( tuple ( int ) ) ):
-            - list of transformed image data.
-            - list of each tile's original size.
+        generator ( tuple ( list ( list ( list ( list ( float ) ) ) ), list ( tuple ( int ) ) ) ):
+            - generator ->
+            - - list of transformed image data.
+            - - list of each tile's original size.
     """
     assert len(inputs) > 0
 
+    log.info(f'Preprocessing {len(inputs)} LOC inputs in batches of {BATCH_SIZE}')
+
     transform = torchvision.transforms.ToTensor()
 
-    data = []
-    sizes = []
-    for filepath in inputs:
-        img = cv2.imread(filepath)
-        size = img.shape[:2][::-1]
+    for filepaths in ut.ichunks(inputs, BATCH_SIZE):
+        data = np.zeros((BATCH_SIZE, 3, INPUT_SIZE_H, INPUT_SIZE_W), dtype=np.float32)
+        sizes = []
+        trim = len(filepaths)
 
-        img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-        img = Letterbox.apply(img, dimension=INPUT_SIZE)
-        img = transform(img)
+        for index, filepath in enumerate(filepaths):
+            img = cv2.imread(filepath)
+            size = img.shape[:2][::-1]
 
-        data.append(img.tolist())
-        sizes.append(size)
+            img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+            img = Letterbox.apply(img, dimension=INPUT_SIZE)
+            img = transform(img)
+            img = img.numpy().astype(np.float32)
 
-    return data, sizes
+            data[index] = img
+            sizes.append(size)
+
+        while len(sizes) < BATCH_SIZE:
+            sizes.append((0, 0))
+
+        yield data, sizes, trim
 
 
-def predict(data, fill=True):
+def predict(gen):
     """
     Run neural network inference using the Localizer's ONNX model on preprocessed data.
 
     Args:
-        data (list): list of transformed image data, the first return of :meth:`scoutbot.loc.pre`
-        fill (bool, optional): If :obj:`True`, fill any partial batches to the LOC `BATCH_SIZE`,
-            and then trim them after inference.  Defaults to :obj:`True`.
+        gen (generator): generator of batches of transformed image data, the return of
+            :meth:`scoutbot.loc.pre`
 
     Returns:
-        list ( list ( float ) ): list of raw ONNX model outputs
+        generator ( list ( list ( float ) ), list ( tuple ( int ) ) ) ):
+            - generator ->
+            - - list of raw ONNX model outputs.
+            - - list of each tile's original size.
     """
     onnx_model = fetch()
 
-    log.info(f'Running LOC inference on {len(data)} tiles')
-
-    if len(data) == 0:
-        return []
+    log.info('Running LOC inference')
 
     ort_session = ort.InferenceSession(
         onnx_model, providers=['CUDAExecutionProvider', 'CPUExecutionProvider']
     )
 
-    preds = []
-    for chunk in ut.ichunks(data, BATCH_SIZE):
-        trim = len(chunk)
-        if fill:
-            while (len(chunk)) < BATCH_SIZE:
-                chunk.append(
-                    np.random.randn(3, INPUT_SIZE_H, INPUT_SIZE_W).astype(np.float32)
-                )
-        input_ = np.array(chunk, dtype=np.float32)
+    for chunk, sizes, trim in tqdm.tqdm(gen):
+        assert len(chunk) == len(sizes)
 
-        pred_ = ort_session.run(
-            None,
-            {'input': input_},
-        )
-        preds += pred_[0].tolist()[:trim]
+        if len(chunk) == 0:
+            preds = []
+            sizes = []
+        else:
+            assert trim <= len(chunk)
 
-    return preds
+            pred = ort_session.run(
+                None,
+                {'input': chunk},
+            )
+            preds = pred[0]
+
+            preds = preds[:trim]
+            sizes = sizes[:trim]
+
+        yield preds, sizes
 
 
-def post(preds, sizes, loc_thresh=LOC_THRESH, nms_thresh=NMS_THRESH):
+def post(gen, loc_thresh=LOC_THRESH, nms_thresh=NMS_THRESH):
     """
     Apply a post-processing normalization of the raw ONNX network outputs.
 
@@ -189,16 +201,13 @@ def post(preds, sizes, loc_thresh=LOC_THRESH, nms_thresh=NMS_THRESH):
     The ``x``, ``y``, ``w``, ``h`` bounding box keys are in real pixel values.
 
     Args:
-        preds (list): list of raw ONNX model outputs, the return of :meth:`scoutbot.loc.predict`
-        sizes (list): list of original tile sizes, the second return of :meth:`scoutbot.loc.pre`
+        gen (generator): generator of batches of raw ONNX model outputs and sizes,
+            the return of :meth:`scoutbot.loc.predict`
 
     Returns:
         list ( list ( dict ) ): nested list of Localizer predictions
     """
-    assert len(preds) == len(sizes)
-
-    if len(preds) == 0:
-        return []
+    log.info('Postprocessing LOC outputs')
 
     postprocess = Compose(
         [
@@ -208,23 +217,29 @@ def post(preds, sizes, loc_thresh=LOC_THRESH, nms_thresh=NMS_THRESH):
         ]
     )
 
-    preds = postprocess(torch.tensor(preds))
-
+    # Exhaust generator and format output
     outputs = []
-    for pred, size in zip(preds, sizes):
-        output = ReverseLetterbox.apply([pred], INPUT_SIZE, size)
-        output = output[0]
-        output = [
-            {
-                'l': detect.class_label,
-                'c': detect.confidence,
-                'x': detect.x_top_left,
-                'y': detect.y_top_left,
-                'w': detect.width,
-                'h': detect.height,
-            }
-            for detect in output
-        ]
-        outputs.append(output)
+    for preds, sizes in gen:
+        assert len(preds) == len(sizes)
+        if len(preds) == 0:
+            continue
+
+        preds = postprocess(torch.tensor(preds))
+
+        for pred, size in zip(preds, sizes):
+            output = ReverseLetterbox.apply([pred], INPUT_SIZE, size)
+            output = output[0]
+            output = [
+                {
+                    'l': detect.class_label,
+                    'c': detect.confidence,
+                    'x': detect.x_top_left,
+                    'y': detect.y_top_left,
+                    'w': detect.width,
+                    'h': detect.height,
+                }
+                for detect in output
+            ]
+            outputs.append(output)
 
     return outputs

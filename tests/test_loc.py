@@ -18,7 +18,7 @@ def test_loc_onnx_load():
 
 
 def test_loc_onnx_pipeline():
-    from scoutbot.loc import INPUT_SIZE, post, pre, predict
+    from scoutbot.loc import BATCH_SIZE, INPUT_SIZE, post, pre, predict
 
     inputs = [
         abspath(join('examples', '0d01a14e-311d-e153-356f-8431b6996b84.true.jpg')),
@@ -26,20 +26,25 @@ def test_loc_onnx_pipeline():
 
     assert exists(inputs[0])
 
-    data, sizes = pre(inputs)
+    data = pre(inputs)
 
-    assert len(data) == 1
-    assert len(data[0]) == 3
-    assert len(data[0][0]) == INPUT_SIZE[0]
-    assert len(data[0][0][0]) == INPUT_SIZE[1]
-    assert sizes == [(256, 256)]
+    temp, sizes, trim = next(data)
+    assert temp.shape == (BATCH_SIZE, 3, INPUT_SIZE[0], INPUT_SIZE[1])
+    assert len(temp) == len(sizes)
+    assert sizes[0] == (256, 256)
+    assert set(sizes[1:]) == {(0, 0)}
 
+    data = pre(inputs)
     preds = predict(data)
 
-    assert len(preds) == 1
-    assert len(preds[0]) == 30
+    temp, sizes = next(preds)
+    assert temp.shape == (1, 30, 13, 13)
+    assert len(temp) == len(sizes)
+    assert sizes == [(256, 256)]
 
-    outputs = post(preds, sizes)
+    data = pre(inputs)
+    preds = predict(data)
+    outputs = post(preds)
 
     assert len(outputs) == 1
     assert len(outputs[0]) == 5

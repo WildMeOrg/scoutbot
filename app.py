@@ -27,9 +27,9 @@ def predict(filepath, wic_thresh, loc_thresh, nms_thresh):
     if wic_confidence > wic_thresh:
 
         # Run Localizer
-        data, sizes = loc.pre(inputs)
-        preds = loc.predict(data)
-        outputs = loc.post(preds, sizes, loc_thresh=loc_thresh, nms_thresh=nms_thresh)
+        outputs = loc.post(
+            loc.predict(loc.pre(inputs)), loc_thresh=loc_thresh, nms_thresh=nms_thresh
+        )
 
         # Format and render results
         detects = outputs[0]

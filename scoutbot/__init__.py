@@ -26,11 +26,10 @@ how the entire pipeline can be run on tiles or images, respectively.
     loc_tile_filepaths = ut.compress(tile_filepaths, flags)
 
     # Run localizer
-    loc_data, loc_sizes = loc.pre(loc_tile_filepaths)
-    loc_preds = loc.predict(loc_data)
     loc_outputs = loc.post(
-        loc_preds,
-        loc_sizes,
+        loc.predict(
+            loc.pre(loc_tile_filepaths)
+        ),
         loc_thresh=loc_thresh,
         nms_thresh=loc_nms_thresh
     )
@@ -56,7 +55,7 @@ log = utils.init_logging()
 
 from scoutbot import agg, loc, tile, wic  # NOQA
 
-VERSION = '0.1.11'
+VERSION = '0.1.12'
 version = VERSION
 __version__ = VERSION
 
@@ -89,6 +88,7 @@ def pipeline(
     loc_nms_thresh=loc.NMS_THRESH,
     agg_thresh=agg.AGG_THRESH,
     agg_nms_thresh=agg.NMS_THRESH,
+    clean=True,
 ):
     """
     Run the ML pipeline on a given image filepath and return the detections
@@ -126,11 +126,13 @@ def pipeline(
     loc_tile_grids = ut.compress(tile_grids, flags)
     loc_tile_filepaths = ut.compress(tile_filepaths, flags)
 
+    log.info(f'Filtered to {len(loc_tile_filepaths)} tiles')
+
     # Run localizer
-    loc_data, loc_sizes = loc.pre(loc_tile_filepaths)
-    loc_preds = loc.predict(loc_data)
     loc_outputs = loc.post(
-        loc_preds, loc_sizes, loc_thresh=loc_thresh, nms_thresh=loc_nms_thresh
+        loc.predict(loc.pre(loc_tile_filepaths)),
+        loc_thresh=loc_thresh,
+        nms_thresh=loc_nms_thresh,
     )
     assert len(loc_tile_grids) == len(loc_outputs)
 
@@ -143,6 +145,11 @@ def pipeline(
         nms_thresh=agg_nms_thresh,
     )
 
+    if clean:
+        for tile_filepath in tile_filepaths:
+            if exists(tile_filepath):
+                ut.delete(tile_filepath, verbose=False)
+
     return detects
 
 
@@ -153,6 +160,7 @@ def batch(
     loc_nms_thresh=loc.NMS_THRESH,
     agg_thresh=agg.AGG_THRESH,
     agg_nms_thresh=agg.NMS_THRESH,
+    clean=True,
 ):
     """
     Run the ML pipeline on a given batch of image filepaths and return the detections
@@ -202,12 +210,12 @@ def batch(
     tile_filepaths = []
     for filepath in filepaths:
         data = batch[filepath]
-        grids = data['grids']
-        filepaths = data['filepaths']
-        assert len(grids) == len(filepaths)
-        tile_img_filepaths += [filepath] * len(grids)
-        tile_grids += grids
-        tile_filepaths += filepaths
+        batch_grids = data['grids']
+        batch_filepaths = data['filepaths']
+        assert len(batch_grids) == len(batch_filepaths)
+        tile_img_filepaths += [filepath] * len(batch_grids)
+        tile_grids += batch_grids
+        tile_filepaths += batch_filepaths
 
     wic_outputs = wic.post(wic.predict(wic.pre(tile_filepaths)))
 
@@ -217,11 +225,13 @@ def batch(
     loc_tile_grids = ut.compress(tile_grids, flags)
     loc_tile_filepaths = ut.compress(tile_filepaths, flags)
 
+    log.info(f'Filtered to {len(loc_tile_filepaths)} tiles')
+
     # Run localizer
-    loc_data, loc_sizes = loc.pre(loc_tile_filepaths)
-    loc_preds = loc.predict(loc_data)
     loc_outputs = loc.post(
-        loc_preds, loc_sizes, loc_thresh=loc_thresh, nms_thresh=loc_nms_thresh
+        loc.predict(loc.pre(loc_tile_filepaths)),
+        loc_thresh=loc_thresh,
+        nms_thresh=loc_nms_thresh,
     )
     assert len(loc_tile_grids) == len(loc_outputs)
 
@@ -250,10 +260,18 @@ def batch(
         )
         detects_list.append(detects)
 
+    if clean:
+        for tile_filepath in tile_filepaths:
+            if exists(tile_filepath):
+                ut.delete(tile_filepath, verbose=False)
+
     return detects_list
 
 
 def example():
+    """
+    Run the pipeline on an example image
+    """
     TEST_IMAGE = 'scout.example.jpg'
     TEST_IMAGE_HASH = (
         '786a940b062a90961f409539292f09144c3dbdbc6b6faa64c3e764d63d55c988'  # NOQA

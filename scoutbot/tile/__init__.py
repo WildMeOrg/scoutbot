@@ -28,7 +28,7 @@ def compute(img_filepath, grid1=True, grid2=True, ext=None, **kwargs):
         grid1 (bool, optional): If :obj:`True`, create a dense grid of tiles on the image.
             Defaults to :obj:`True`.
         grid2 (bool, optional): If :obj:`True`, create a secondary dense grid of tiles
-            on the image with a 50% offset.  Defaults to :obj:`True`.
+            on the image with a 50% offset.  Defaults to :obj:`False`.
         ext (str, optional): The file extension of the resulting tile files.  If this value is
             not specified, it will use the same extension as `img_filepath`.  Passed as input
             to :meth:`scoutbot.tile.tile_filepath`.  Defaults to :obj:`None`.

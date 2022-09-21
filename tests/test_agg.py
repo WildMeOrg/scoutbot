@@ -24,10 +24,10 @@ def test_agg_compute():
     assert sum(flags) == 15
 
     # Run localizer
-    loc_data, loc_sizes = loc.pre(loc_tile_filepaths)
-    loc_preds = loc.predict(loc_data)
     loc_outputs = loc.post(
-        loc_preds, loc_sizes, loc_thresh=loc.LOC_THRESH, nms_thresh=loc.NMS_THRESH
+        loc.predict(loc.pre(loc_tile_filepaths)),
+        loc_thresh=loc.LOC_THRESH,
+        nms_thresh=loc.NMS_THRESH,
     )
     assert len(loc_tile_grids) == len(loc_outputs)
 
