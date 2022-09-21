@@ -82,14 +82,15 @@ def pre(inputs, batch_size=BATCH_SIZE):
         generator ( list ( list ( list ( list ( float ) ) ) ) ) : generator ->
         list of transformed image data
     """
-    assert len(inputs) > 0
+    if len(inputs) == 0:
+        return []
 
     log.info(f'Preprocessing {len(inputs)} WIC inputs in batches of {batch_size}')
 
     transform = _init_transforms()
     dataset = ImageFilePathList(inputs, transform=transform)
     dataloader = torch.utils.data.DataLoader(
-        dataset, batch_size=batch_size, num_workers=8, pin_memory=False
+        dataset, batch_size=batch_size, num_workers=0, pin_memory=False
     )
 
     for (data,) in dataloader:

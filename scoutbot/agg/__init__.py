@@ -177,31 +177,34 @@ def compute(
     log.info(f'Aggregating {len(tile_grids)} tiles onto {img_shape} canvas')
 
     if len(tile_grids) == 0:
-        return []
+        final = []
+    else:
+        # Demosaic tile detection results and aggregate across the image
+        detects = demosaic(img_shape, tile_grids, loc_outputs)
 
-    # Demosaic tile detection results and aggregate across the image
-    detects = demosaic(img_shape, tile_grids, loc_outputs)
+        # Filter low-confidence detections
+        detects = [detect for detect in detects if detect['c'] >= agg_thresh]
 
-    # Filter low-confidence detections
-    detects = [detect for detect in detects if detect['c'] >= agg_thresh]
+        if len(detects) == 0:
+            final = []
+        else:
+            # Run NMS on aggregated detections
+            coords = np.vstack(
+                [
+                    [
+                        detect['x'],
+                        detect['y'],
+                        detect['x'] + detect['w'],
+                        detect['y'] + detect['h'],
+                    ]
+                    for detect in detects
+                ]
+            )
+            confs = np.array([detect['c'] for detect in detects])
 
-    # Run NMS on aggregated detections
-    coords = np.vstack(
-        [
-            [
-                detect['x'],
-                detect['y'],
-                detect['x'] + detect['w'],
-                detect['y'] + detect['h'],
-            ]
-            for detect in detects
-        ]
-    )
-    confs = np.array([detect['c'] for detect in detects])
-
-    keeps = py_cpu_nms(coords, confs, nms_thresh)
-    final = ut.take(detects, keeps)
-    final.sort(key=lambda val: val['c'], reverse=True)
+            keeps = py_cpu_nms(coords, confs, nms_thresh)
+            final = ut.take(detects, keeps)
+            final.sort(key=lambda val: val['c'], reverse=True)
 
     log.info(f'Found {len(final)} detections')
 

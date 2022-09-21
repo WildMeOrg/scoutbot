@@ -102,7 +102,8 @@ def pre(inputs):
             - - list of transformed image data.
             - - list of each tile's original size.
     """
-    assert len(inputs) > 0
+    if len(inputs) == 0:
+        return []
 
     log.info(f'Preprocessing {len(inputs)} LOC inputs in batches of {BATCH_SIZE}')
 

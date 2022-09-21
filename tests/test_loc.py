@@ -102,3 +102,8 @@ def test_loc_onnx_pipeline():
                 assert abs(output.get(key) - target.get(key)) < 1e-2
             else:
                 assert abs(output.get(key) - target.get(key)) < 3
+
+    data = pre([])
+    preds = predict(data)
+    outputs = post(preds)
+    assert len(outputs) == 0

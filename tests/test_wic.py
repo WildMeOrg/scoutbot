@@ -52,3 +52,8 @@ def test_wic_onnx_pipeline():
     assert abs(output['positive'] - 0.99998497) < 1e-4
     assert isinstance(output['negative'], float)
     assert isinstance(output['positive'], float)
+
+    data = pre([])
+    preds = predict(data)
+    outputs = post(preds)
+    assert len(outputs) == 0
