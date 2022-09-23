@@ -111,7 +111,7 @@ def pipeline(
         filepath (str): image filepath (relative or absolute)
 
     Returns:
-        list ( dict ): list of predictions
+        tuple ( float, list ( dict ) ): wic score, list of predictions
     """
     import utool as ut
 
@@ -122,6 +122,7 @@ def pipeline(
     wic_outputs = wic.post(wic.predict(wic.pre(tile_filepaths)))
 
     # Threshold for WIC
+    wic_ = max(wic_output.get('positive') for wic_output in wic_outputs)
     flags = [wic_output.get('positive') >= wic_thresh for wic_output in wic_outputs]
     loc_tile_grids = ut.compress(tile_grids, flags)
     loc_tile_filepaths = ut.compress(tile_filepaths, flags)
@@ -150,7 +151,7 @@ def pipeline(
             if exists(tile_filepath):
                 ut.delete(tile_filepath, verbose=False)
 
-    return detects
+    return wic_, detects
 
 
 def batch(
@@ -185,7 +186,7 @@ def batch(
         filepaths (list): list of str image filepath (relative or absolute)
 
     Returns:
-        list ( list ( dict ) ) : corresponding list of lists of predictions
+        tuple ( list ( float ), list ( list ( dict ) ) : corresponding list of wic scores, corresponding list of lists of predictions
     """
     import utool as ut
 
@@ -219,6 +220,14 @@ def batch(
 
     wic_outputs = wic.post(wic.predict(wic.pre(tile_filepaths)))
 
+    wic_dict = {}
+    for tile_img_filepath, wic_output in zip(tile_img_filepaths, wic_outputs):
+        wic_ = wic_output.get('positive')
+        existing_wic_ = wic_dict.get(tile_img_filepath, None)
+        if existing_wic_ is None:
+            existing_wic_ = wic_
+        wic_dict[tile_img_filepath] = max(existing_wic_, wic_)
+
     # Threshold for WIC
     flags = [wic_output.get('positive') >= wic_thresh for wic_output in wic_outputs]
     loc_tile_img_filepaths = ut.compress(tile_img_filepaths, flags)
@@ -242,9 +251,11 @@ def batch(
         batch[filepath]['loc']['outputs'].append(loc_output)
 
     # Run Aggregation
+    wic_list = []
     detects_list = []
     for filepath in filepaths:
         data = batch[filepath]
+        wic_ = wic_dict.get(filepath, None)
 
         img_shape = data['shape']
         loc_tile_grids = data['loc']['grids']
@@ -258,6 +269,8 @@ def batch(
             agg_thresh=agg_thresh,
             nms_thresh=agg_nms_thresh,
         )
+
+        wic_list.append(wic_)
         detects_list.append(detects)
 
     if clean:
@@ -265,7 +278,7 @@ def batch(
             if exists(tile_filepath):
                 ut.delete(tile_filepath, verbose=False)
 
-    return detects_list
+    return wic_list, detects_list
 
 
 def example():
@@ -286,6 +299,6 @@ def example():
 
     log.info(f'Running pipeline on image: {img_filepath}')
 
-    detects = pipeline(img_filepath)
+    wic_, detects = pipeline(img_filepath)
 
     log.info(ut.repr3(detects))

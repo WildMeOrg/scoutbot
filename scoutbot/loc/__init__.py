@@ -31,26 +31,50 @@ from scoutbot.loc.transforms import (
 
 PWD = Path(__file__).absolute().parent
 
-BATCH_SIZE = 16
-INPUT_SIZE = (416, 416)
-INPUT_SIZE_H, INPUT_SIZE_W = INPUT_SIZE
-NETWORK_SIZE = (INPUT_SIZE_H, INPUT_SIZE_W, 3)
+PHASE1 = True
 
-NUM_CLASSES = 1
-ANCHORS = [
-    (1.3221, 1.73145),
-    (3.19275, 4.00944),
-    (5.05587, 8.09892),
-    (9.47112, 4.84053),
-    (11.2364, 10.0071),
-]
-CLASS_LABEL_MAP = ['elephant_savanna']
-LOC_THRESH = 0.4
-NMS_THRESH = 0.8
+if PHASE1:
+    BATCH_SIZE = 16
+    INPUT_SIZE = (416, 416)
+    INPUT_SIZE_H, INPUT_SIZE_W = INPUT_SIZE
+    NETWORK_SIZE = (INPUT_SIZE_H, INPUT_SIZE_W, 3)
 
-ONNX_MODEL = 'scout.loc.5fbfff26.0.onnx'
-ONNX_MODEL_PATH = join(PWD, 'models', 'onnx', ONNX_MODEL)
-ONNX_MODEL_HASH = '85a9378311d42b5143f74570136f32f50bf97c548135921b178b46ba7612b216'
+    NUM_CLASSES = 1
+    ANCHORS = [
+        (1.3221, 1.73145),
+        (3.19275, 4.00944),
+        (5.05587, 8.09892),
+        (9.47112, 4.84053),
+        (11.2364, 10.0071),
+    ]
+    CLASS_LABEL_MAP = ['elephant_savanna']
+    LOC_THRESH = 0.4
+    NMS_THRESH = 0.8
+
+    ONNX_MODEL = 'scout.loc.5fbfff26.0.onnx'
+    ONNX_MODEL_PATH = join(PWD, 'models', 'onnx', ONNX_MODEL)
+    ONNX_MODEL_HASH = '85a9378311d42b5143f74570136f32f50bf97c548135921b178b46ba7612b216'
+else:
+    BATCH_SIZE = 16
+    INPUT_SIZE = (416, 416)
+    INPUT_SIZE_H, INPUT_SIZE_W = INPUT_SIZE
+    NETWORK_SIZE = (INPUT_SIZE_H, INPUT_SIZE_W, 3)
+
+    NUM_CLASSES = 1
+    ANCHORS = [
+        (1.3221, 1.73145),
+        (3.19275, 4.00944),
+        (5.05587, 8.09892),
+        (9.47112, 4.84053),
+        (11.2364, 10.0071),
+    ]
+    CLASS_LABEL_MAP = ['elephant_savanna']
+    LOC_THRESH = 0.4
+    NMS_THRESH = 0.8
+
+    ONNX_MODEL = 'scout.loc.5fbfff26.0.onnx'
+    ONNX_MODEL_PATH = join(PWD, 'models', 'onnx', ONNX_MODEL)
+    ONNX_MODEL_HASH = '85a9378311d42b5143f74570136f32f50bf97c548135921b178b46ba7612b216'
 
 
 def fetch(pull=False):

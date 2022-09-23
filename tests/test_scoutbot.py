@@ -12,7 +12,7 @@ def test_fetch():
 def test_pipeline():
     img_filepath = abspath(join('examples', '1be4d40a-6fd0-42ce-da6c-294e45781f41.jpg'))
 
-    detects = scoutbot.pipeline(img_filepath)
+    wic_, detects = scoutbot.pipeline(img_filepath)
     assert len(detects) == 3
 
     targets = [

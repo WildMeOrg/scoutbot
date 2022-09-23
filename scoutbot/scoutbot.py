@@ -83,7 +83,7 @@ def pipeline(
     agg_thresh /= 100.0
     agg_nms_thresh /= 100.0
 
-    detects = scoutbot.pipeline(
+    wic_, detects = scoutbot.pipeline(
         filepath,
         wic_thresh=wic_thresh,
         loc_thresh=loc_thresh,
@@ -94,9 +94,17 @@ def pipeline(
 
     if output:
         with open(output, 'w') as outfile:
-            json.dump(detects, outfile)
+            data = {
+                filepath: {
+                    'wic': wic_,
+                    'loc': detects,
+                }
+            }
+            json.dump(data, outfile)
     else:
-        log.info(ut.repr3(detects))
+        log.info(filepath)
+        log.info(f'WIC: {wic_:0.04f}')
+        log.info('LOC: {}'.format(ut.repr3(detects)))
 
 
 @click.command('batch')
@@ -155,7 +163,7 @@ def batch(
 
     log.info(f'Running batch on {len(filepaths)} files...')
 
-    detects_list = scoutbot.batch(
+    wic_list, detects_list = scoutbot.batch(
         filepaths,
         wic_thresh=wic_thresh,
         loc_thresh=loc_thresh,
@@ -163,16 +171,22 @@ def batch(
         agg_thresh=agg_thresh,
         agg_nms_thresh=agg_nms_thresh,
     )
-    results = zip(filepaths, detects_list)
+    results = zip(filepaths, wic_list, detects_list)
 
     if output:
-        detects = dict(results)
         with open(output, 'w') as outfile:
-            json.dump(detects, outfile)
+            data = {}
+            for filepath, wic_, detects in results:
+                data[filepath] = {
+                    'wic': wic,
+                    'loc': detects,
+                }
+                json.dump(data, outfile)
     else:
-        for filepath, detects in results:
+        for filepath, wic_, detects in results:
             log.info(filepath)
-            log.info(ut.repr3(detects))
+            log.info(f'WIC: {wic_:0.04f}')
+            log.info('LOC: {}'.format(ut.repr3(detects)))
 
 
 @click.command('example')
