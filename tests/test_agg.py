@@ -6,7 +6,7 @@ import utool as ut
 from scoutbot import agg, loc, tile, wic
 
 
-def test_agg_compute():
+def test_agg_compute_phase1():
     img_filepath = abspath(join('examples', '1be4d40a-6fd0-42ce-da6c-294e45781f41.jpg'))
 
     # Run tiling
@@ -14,31 +14,24 @@ def test_agg_compute():
     assert len(tile_filepaths) == 1252
 
     # Run WIC
-    wic_outputs = wic.post(wic.predict(wic.pre(tile_filepaths)))
+    wic_outputs = wic.post(wic.predict(wic.pre(tile_filepaths, config='phase1')))
     assert len(wic_outputs) == len(tile_filepaths)
 
     # Threshold for WIC
-    flags = [wic_output.get('positive') >= wic.WIC_THRESH for wic_output in wic_outputs]
+    flags = [
+        wic_output.get('positive') >= wic.CONFIGS[None]['thresh']
+        for wic_output in wic_outputs
+    ]
     loc_tile_grids = ut.compress(tile_grids, flags)
     loc_tile_filepaths = ut.compress(tile_filepaths, flags)
     assert sum(flags) == 15
 
     # Run localizer
-    loc_outputs = loc.post(
-        loc.predict(loc.pre(loc_tile_filepaths)),
-        loc_thresh=loc.LOC_THRESH,
-        nms_thresh=loc.NMS_THRESH,
-    )
+    loc_outputs = loc.post(loc.predict(loc.pre(loc_tile_filepaths, config='phase1')))
     assert len(loc_tile_grids) == len(loc_outputs)
 
     # Aggregate
-    detects = agg.compute(
-        img_shape,
-        loc_tile_grids,
-        loc_outputs,
-        agg_thresh=agg.AGG_THRESH,
-        nms_thresh=agg.NMS_THRESH,
-    )
+    detects = agg.compute(img_shape, loc_tile_grids, loc_outputs, config='phase1')
 
     assert len(detects) == 3
 

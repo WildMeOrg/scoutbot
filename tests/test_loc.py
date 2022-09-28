@@ -4,10 +4,10 @@ from os.path import abspath, exists, join
 import onnx
 
 
-def test_loc_onnx_load():
+def test_loc_onnx_load_phase1():
     from scoutbot.loc import fetch
 
-    onnx_model = fetch()
+    onnx_model = fetch(config='phase1')
     model = onnx.load(onnx_model)
     assert exists(onnx_model)
 
@@ -17,8 +17,8 @@ def test_loc_onnx_load():
     assert graph.count('\n') == 107
 
 
-def test_loc_onnx_pipeline():
-    from scoutbot.loc import BATCH_SIZE, INPUT_SIZE, post, pre, predict
+def test_loc_onnx_pipeline_phase1():
+    from scoutbot.loc import CONFIGS, INPUT_SIZE, post, pre, predict
 
     inputs = [
         abspath(join('examples', '0d01a14e-311d-e153-356f-8431b6996b84.true.jpg')),
@@ -26,23 +26,26 @@ def test_loc_onnx_pipeline():
 
     assert exists(inputs[0])
 
-    data = pre(inputs)
+    data = pre(inputs, config='phase1')
+    batch_size = CONFIGS[None]['batch']
 
-    temp, sizes, trim = next(data)
-    assert temp.shape == (BATCH_SIZE, 3, INPUT_SIZE[0], INPUT_SIZE[1])
+    temp, sizes, trim, config = next(data)
+    assert temp.shape == (batch_size, 3, INPUT_SIZE[0], INPUT_SIZE[1])
     assert len(temp) == len(sizes)
     assert sizes[0] == (256, 256)
     assert set(sizes[1:]) == {(0, 0)}
+    assert config == 'phase1'
 
-    data = pre(inputs)
+    data = pre(inputs, config='phase1')
     preds = predict(data)
 
-    temp, sizes = next(preds)
+    temp, sizes, config = next(preds)
     assert temp.shape == (1, 30, 13, 13)
     assert len(temp) == len(sizes)
     assert sizes == [(256, 256)]
+    assert config == 'phase1'
 
-    data = pre(inputs)
+    data = pre(inputs, config='phase1')
     preds = predict(data)
     outputs = post(preds)
 
@@ -102,6 +105,10 @@ def test_loc_onnx_pipeline():
                 assert abs(output.get(key) - target.get(key)) < 1e-2
             else:
                 assert abs(output.get(key) - target.get(key)) < 3
+
+
+def test_loc_onnx_pipeline_empty():
+    from scoutbot.loc import post, pre, predict
 
     data = pre([])
     preds = predict(data)

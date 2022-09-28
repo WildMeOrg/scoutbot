@@ -25,7 +25,7 @@ def predict(filepath, wic_thresh, loc_thresh, agg_thresh, loc_nms_thresh, agg_nm
     pixels = h * w
     megapixels = pixels / 1e6
 
-    detects = scoutbot.pipeline(
+    wic_, detects = scoutbot.pipeline(
         filepath, wic_thresh, loc_thresh, loc_nms_thresh, agg_thresh, agg_nms_thresh
     )
 

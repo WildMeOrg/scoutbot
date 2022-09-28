@@ -7,6 +7,7 @@ Localization ONNX model on this input, and finally how to convert this raw CNN
 output into usable detection bounding boxes with class labels and confidence
 scores.
 '''
+import os
 from os.path import exists, join
 from pathlib import Path
 
@@ -31,53 +32,90 @@ from scoutbot.loc.transforms import (
 
 PWD = Path(__file__).absolute().parent
 
-PHASE1 = True
+INPUT_SIZE = (416, 416)
+INPUT_SIZE_H, INPUT_SIZE_W = INPUT_SIZE
+NETWORK_SIZE = (INPUT_SIZE_H, INPUT_SIZE_W, 3)
 
-if PHASE1:
-    BATCH_SIZE = 16
-    INPUT_SIZE = (416, 416)
-    INPUT_SIZE_H, INPUT_SIZE_W = INPUT_SIZE
-    NETWORK_SIZE = (INPUT_SIZE_H, INPUT_SIZE_W, 3)
+DEFAULT_CONFIG = os.getenv('CONFIG', 'phase1').strip().lower()
+CONFIGS = {
+    'phase1': {
+        'batch': 16,
+        'name': 'scout.loc.5fbfff26.0.onnx',
+        'path': join(PWD, 'models', 'onnx', 'scout.loc.5fbfff26.0.onnx'),
+        'hash': '85a9378311d42b5143f74570136f32f50bf97c548135921b178b46ba7612b216',
+        'classes': ['elephant_savanna'],
+        'thresh': 0.4,
+        'nms': 0.8,
+        'anchors': [
+            (1.3221, 1.73145),
+            (3.19275, 4.00944),
+            (5.05587, 8.09892),
+            (9.47112, 4.84053),
+            (11.2364, 10.0071),
+        ],
+    },
+    'mvp': {
+        'batch': 32,
+        'name': 'scout.loc.mvp.0.onnx',
+        'path': join(PWD, 'models', 'onnx', 'scout.loc.mvp.0.onnx'),
+        'hash': 'AAA',
+        'classes': [
+            'buffalo',
+            'camel',
+            'canoe',
+            'car',
+            'cow',
+            'crocodile',
+            'dead_animalwhite_bones',
+            'deadbones',
+            'eland',
+            'elecarcass_old',
+            'elephant',
+            'gazelle_gr',
+            'gazelle_grants',
+            'gazelle_th',
+            'gazelle_thomsons',
+            'gerenuk',
+            'giant_forest_hog',
+            'giraffe',
+            'goat',
+            'hartebeest',
+            'hippo',
+            'impala',
+            'kob',
+            'kudu',
+            'motorcycle',
+            'oribi',
+            'oryx',
+            'ostrich',
+            'roof_grass',
+            'roof_mabati',
+            'sheep',
+            'test',
+            'topi',
+            'vehicle',
+            'warthog',
+            'waterbuck',
+            'white_bones',
+            'wildebeest',
+            'zebra',
+        ],
+        'thresh': 0.4,
+        'nms': 0.8,
+        'anchors': [
+            (1.3221, 1.73145),
+            (3.19275, 4.00944),
+            (5.05587, 8.09892),
+            (9.47112, 4.84053),
+            (11.2364, 10.0071),
+        ],
+    },
+}
+CONFIGS[None] = CONFIGS[DEFAULT_CONFIG]
+assert DEFAULT_CONFIG in CONFIGS
 
-    NUM_CLASSES = 1
-    ANCHORS = [
-        (1.3221, 1.73145),
-        (3.19275, 4.00944),
-        (5.05587, 8.09892),
-        (9.47112, 4.84053),
-        (11.2364, 10.0071),
-    ]
-    CLASS_LABEL_MAP = ['elephant_savanna']
-    LOC_THRESH = 0.4
-    NMS_THRESH = 0.8
 
-    ONNX_MODEL = 'scout.loc.5fbfff26.0.onnx'
-    ONNX_MODEL_PATH = join(PWD, 'models', 'onnx', ONNX_MODEL)
-    ONNX_MODEL_HASH = '85a9378311d42b5143f74570136f32f50bf97c548135921b178b46ba7612b216'
-else:
-    BATCH_SIZE = 16
-    INPUT_SIZE = (416, 416)
-    INPUT_SIZE_H, INPUT_SIZE_W = INPUT_SIZE
-    NETWORK_SIZE = (INPUT_SIZE_H, INPUT_SIZE_W, 3)
-
-    NUM_CLASSES = 1
-    ANCHORS = [
-        (1.3221, 1.73145),
-        (3.19275, 4.00944),
-        (5.05587, 8.09892),
-        (9.47112, 4.84053),
-        (11.2364, 10.0071),
-    ]
-    CLASS_LABEL_MAP = ['elephant_savanna']
-    LOC_THRESH = 0.4
-    NMS_THRESH = 0.8
-
-    ONNX_MODEL = 'scout.loc.5fbfff26.0.onnx'
-    ONNX_MODEL_PATH = join(PWD, 'models', 'onnx', ONNX_MODEL)
-    ONNX_MODEL_HASH = '85a9378311d42b5143f74570136f32f50bf97c548135921b178b46ba7612b216'
-
-
-def fetch(pull=False):
+def fetch(pull=False, config=DEFAULT_CONFIG):
     """
     Fetch the Localizer ONNX model file from a CDN if it does not exist locally.
 
@@ -85,8 +123,10 @@ def fetch(pull=False):
     file otherwise does not exists locally on disk.
 
     Args:
-        pull (bool, optional): If :obj:`True`, use a downloaded version stored in
-            the local system's cache.  Defaults to :obj:`False`.
+        pull (bool, optional): If :obj:`True`, force using the downloaded versions
+            stored in the local system's cache.  Defaults to :obj:`False`.
+        config (str or None, optional): the configuration to use, one of ``phase1``
+            or ``mvp``.  Defaults to :obj:`None` (the ``phase1`` model).
 
     Returns:
         str: local ONNX model file path.
@@ -94,21 +134,26 @@ def fetch(pull=False):
     Raises:
         AssertionError: If the model cannot be fetched.
     """
-    if not pull and exists(ONNX_MODEL_PATH):
-        onnx_model = ONNX_MODEL_PATH
+    model_name = CONFIGS[config]['name']
+    model_path = CONFIGS[config]['path']
+    model_hash = CONFIGS[config]['hash']
+
+    if not pull and exists(model_path):
+        onnx_model = model_path
     else:
         onnx_model = pooch.retrieve(
-            url=f'https://wildbookiarepository.azureedge.net/models/{ONNX_MODEL}',
-            known_hash=ONNX_MODEL_HASH,
+            url=f'https://wildbookiarepository.azureedge.net/models/{model_name}',
+            known_hash=model_hash,
             progressbar=True,
         )
         assert exists(onnx_model)
+
     log.info(f'LOC Model: {onnx_model}')
 
     return onnx_model
 
 
-def pre(inputs):
+def pre(inputs, config=DEFAULT_CONFIG):
     """
     Load a list of filepaths and return a corresponding list of the image
     data as a 4-D list of floats.  The image data is loaded from disk, transformed
@@ -119,22 +164,27 @@ def pre(inputs):
 
     Args:
         inputs (list(str)): list of tile image filepaths (relative or absolute)
+        config (str or None, optional): the configuration to use, one of ``phase1``
+            or ``mvp``.  Defaults to :obj:`None` (the ``phase1`` model).
 
     Returns:
-        generator ( tuple ( list ( list ( list ( list ( float ) ) ) ), list ( tuple ( int ) ) ) ):
+        generator ( np.ndarray<np.float32>, list ( tuple ( int ) ), int, str ):
             - generator ->
-            - - list of transformed image data.
-            - - list of each tile's original size.
+            - - list of transformed image data with shape ``(b, c, w, h)``
+            - - list of each tile's original size
+            - - trim index
+            - - model configuration
     """
     if len(inputs) == 0:
-        return []
+        return [], config
 
-    log.info(f'Preprocessing {len(inputs)} LOC inputs in batches of {BATCH_SIZE}')
+    batch_size = CONFIGS[config]['batch']
+    log.info(f'Preprocessing {len(inputs)} LOC inputs in batches of {batch_size}')
 
     transform = torchvision.transforms.ToTensor()
 
-    for filepaths in ut.ichunks(inputs, BATCH_SIZE):
-        data = np.zeros((BATCH_SIZE, 3, INPUT_SIZE_H, INPUT_SIZE_W), dtype=np.float32)
+    for filepaths in ut.ichunks(inputs, batch_size):
+        data = np.zeros((batch_size, 3, INPUT_SIZE_H, INPUT_SIZE_W), dtype=np.float32)
         sizes = []
         trim = len(filepaths)
 
@@ -150,10 +200,10 @@ def pre(inputs):
             data[index] = img
             sizes.append(size)
 
-        while len(sizes) < BATCH_SIZE:
+        while len(sizes) < batch_size:
             sizes.append((0, 0))
 
-        yield data, sizes, trim
+        yield data, sizes, trim, config
 
 
 def predict(gen):
@@ -165,26 +215,33 @@ def predict(gen):
             :meth:`scoutbot.loc.pre`
 
     Returns:
-        generator ( list ( list ( float ) ), list ( tuple ( int ) ) ) ):
+        generator ( np.ndarray<np.float32>, list ( tuple ( int ) ), str ):
             - generator ->
-            - - list of raw ONNX model outputs.
-            - - list of each tile's original size.
+            - - list of raw ONNX model outputs as shape ``(b, n)``
+            - - list of each tile's original size
+            - - model configuration
     """
-    onnx_model = fetch()
-
     log.info('Running LOC inference')
 
-    ort_session = ort.InferenceSession(
-        onnx_model, providers=['CUDAExecutionProvider', 'CPUExecutionProvider']
-    )
+    ort_sessions = {}
 
-    for chunk, sizes, trim in tqdm.tqdm(gen):
+    for chunk, sizes, trim, config in tqdm.tqdm(gen):
         assert len(chunk) == len(sizes)
 
         if len(chunk) == 0:
             preds = []
             sizes = []
         else:
+            ort_session = ort_sessions.get(config)
+            if ort_session is None:
+                onnx_model = fetch(config=config)
+
+                ort_session = ort.InferenceSession(
+                    onnx_model,
+                    providers=['CUDAExecutionProvider', 'CPUExecutionProvider'],
+                )
+                ort_sessions[config] = ort_session
+
             assert trim <= len(chunk)
 
             pred = ort_session.run(
@@ -196,10 +253,10 @@ def predict(gen):
             preds = preds[:trim]
             sizes = sizes[:trim]
 
-        yield preds, sizes
+        yield preds, sizes, config
 
 
-def post(gen, loc_thresh=LOC_THRESH, nms_thresh=NMS_THRESH):
+def post(gen, loc_thresh=None, nms_thresh=None):
     """
     Apply a post-processing normalization of the raw ONNX network outputs.
 
@@ -228,26 +285,39 @@ def post(gen, loc_thresh=LOC_THRESH, nms_thresh=NMS_THRESH):
     Args:
         gen (generator): generator of batches of raw ONNX model outputs and sizes,
             the return of :meth:`scoutbot.loc.predict`
+        loc_thresh (float or None, optional): the confidence threshold for the localizer's
+            predictions.  Defaults to None.  Defaults to :obj:`None`
+            (the ``phase1`` model).
+        nms_thresh (float or None, optional): the non-maximum suppression (NMS) threshold
+            for the localizer's predictions.  Defaults to :obj:`None`
+            (the ``phase1`` model).
 
     Returns:
         list ( list ( dict ) ): nested list of Localizer predictions
     """
     log.info('Postprocessing LOC outputs')
 
-    postprocess = Compose(
-        [
-            GetBoundingBoxes(NUM_CLASSES, ANCHORS, loc_thresh),
-            NonMaxSupression(nms_thresh),
-            TensorToBrambox(NETWORK_SIZE, CLASS_LABEL_MAP),
-        ]
-    )
-
     # Exhaust generator and format output
     outputs = []
-    for preds, sizes in gen:
+    for preds, sizes, config in gen:
         assert len(preds) == len(sizes)
         if len(preds) == 0:
             continue
+
+        anchors = CONFIGS[config]['anchors']
+        classes = CONFIGS[config]['classes']
+        if loc_thresh is None:
+            loc_thresh = CONFIGS[config]['thresh']
+        if nms_thresh is None:
+            nms_thresh = CONFIGS[config]['nms']
+
+        postprocess = Compose(
+            [
+                GetBoundingBoxes(len(classes), anchors, loc_thresh),
+                NonMaxSupression(nms_thresh),
+                TensorToBrambox(NETWORK_SIZE, classes),
+            ]
+        )
 
         preds = postprocess(torch.tensor(preds))
 

@@ -1,4 +1,6 @@
 click
+codecov
+coverage
 cryptography
 gradio
 imgaug

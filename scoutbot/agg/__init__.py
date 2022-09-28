@@ -6,14 +6,28 @@ at the image level.  This includes the ability to weight the importance of detec
 along the border of each tile within an image, and performing non-maximum suppression (NMS)
 on the combined results.
 """
+import os
+
 import numpy as np
 import utool as ut
 
 from scoutbot import log
 
 MARGIN = 32.0
-AGG_THRESH = 0.4
-NMS_THRESH = 0.2
+
+DEFAULT_CONFIG = os.getenv('CONFIG', 'phase1').strip().lower()
+CONFIGS = {
+    'phase1': {
+        'thresh': 0.4,
+        'nms': 0.2,
+    },
+    'mvp': {
+        'thresh': 0.4,
+        'nms': 0.2,
+    },
+}
+CONFIGS[None] = CONFIGS[DEFAULT_CONFIG]
+assert DEFAULT_CONFIG in CONFIGS
 
 
 def iou(box1, box2):
@@ -76,6 +90,16 @@ def demosaic(img_shape, tile_grids, loc_outputs, margin=MARGIN):
     """
     Demosaics a list of tiles and their respective detections back into the original
     image's coordinate system.
+
+    Args:
+        img_shape (tuple): a tuple of the image shape as ``h, w, c`` or ``h, w``
+        tile_grids (list of dict): a list of tile coordinates
+        loc_output (list of list of dict): the output predictions from the Localizer.
+        margin (float, optional): the margin of the image to weight predictions.
+            Defaults to 32.0
+
+    Returns:
+        list ( dict ): list of Localizer predictions
     """
     assert len(tile_grids) == len(loc_outputs)
 
@@ -165,14 +189,35 @@ def demosaic(img_shape, tile_grids, loc_outputs, margin=MARGIN):
 
 
 def compute(
-    img_shape, tile_grids, loc_outputs, agg_thresh=AGG_THRESH, nms_thresh=NMS_THRESH
+    img_shape, tile_grids, loc_outputs, config=None, agg_thresh=None, nms_thresh=None
 ):
     """
     Compute the aggregated image-level detection results for a given list of tile-level detections.
+
+    Args:
+        img_shape (tuple): a tuple of the image shape as ``h, w, c`` or ``h, w``
+        tile_grids (list of dict): a list of tile coordinates
+        loc_output (list of list of dict): the output predictions from the Localizer.
+        config (str or None, optional): the configuration to use, one of ``phase1``
+            or ``mvp``.  Defaults to :obj:`None` (the ``phase1`` model).
+        agg_thresh (float or None, optional): the confidence threshold for the aggregated
+            localizer predictions.  Defaults to None.  Defaults to :obj:`None`
+            (the ``phase1`` model's settings).
+        nms_thresh (float or None, optional): the non-maximum suppression (NMS) threshold
+            for the aggregated localizer's predictions.  Defaults to :obj:`None`
+            (the ``phase1`` model's settings).
+
+    Returns:
+        list ( dict ): list of Localizer predictions
     """
     from scoutbot.agg.py_cpu_nms import py_cpu_nms
 
     assert len(tile_grids) == len(loc_outputs)
+
+    if agg_thresh is None:
+        agg_thresh = CONFIGS[config]['thresh']
+    if nms_thresh is None:
+        nms_thresh = CONFIGS[config]['nms']
 
     log.info(f'Aggregating {len(tile_grids)} tiles onto {img_shape} canvas')
 

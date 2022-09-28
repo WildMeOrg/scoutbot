@@ -49,6 +49,47 @@ or, you can run the image-base Gradio demo with:
 Docker
 ------
 
+To run with Docker:
+
+.. code-block:: console
+
+    docker run \
+       -it \
+       --rm \
+       -p 7860:7860 \
+       -e CONFIG=phase1 \
+       -e WIC_BATCH_SIZE=512 \
+       --gpus all \
+       --name scoutbot \
+       wildme/scoutbot:main \
+       python3 app2.py
+
+To run with Docker Compose:
+
+.. code-block:: yaml
+
+    version: "3"
+
+    services:
+      scoutbot:
+        image: wildme/scoutbot:main
+        command: python3 app2.py
+        ports:
+          - "7860:7860"
+        environment:
+          CONFIG: phase1
+          WIC_BATCH_SIZE: 512
+        restart: unless-stopped
+        deploy:
+          resources:
+            reservations:
+              devices:
+                - driver: nvidia
+                  device_ids: ["all"]
+                  capabilities: [gpu]
+
+and run ``docker compose up -d``.
+
 The application can also be built into a Docker image and is hosted on Docker Hub as ``wildme/scoutbot:latest``.
 
 .. code-block:: console
@@ -64,17 +105,6 @@ The application can also be built into a Docker image and is hosted on Docker Hu
         --platform linux/amd64 \
         --push \
         .
-
-To run with Docker:
-
-.. code-block:: console
-
-    docker run \
-       -it \
-       --rm \
-       -p 7860:7860 \
-       --name scoutbot \
-       wildme/scoutbot:latest
 
 Tests and Coverage
 ------------------

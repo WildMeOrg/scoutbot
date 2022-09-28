@@ -147,11 +147,12 @@ def tile_grid(
 
     Args:
         shape (tuple): the image's shape as ``(h, w, c)`` or ``(h, w)``
-        size (tuple): the tile's shape as ``(w, h)``
-        overlap (int): The amount of pixel overlap between each tile, for both the x-axis
-            and the y-axis.
-        offset (int): The amount of pixel offset for the entire grid
-        borders (bool): If :obj:`True`, include a set of border-only tiles.  Defaults to :obj:`True`.
+        size (tuple, optional): the tile's shape as ``(w, h)``
+        overlap (int, optional): The amount of pixel overlap between each tile, for
+            both the x-axis and the y-axis.
+        offset (int, optional): The amount of pixel offset for the entire grid
+        borders (bool, optional): If :obj:`True`, include a set of border-only tiles.
+            Defaults to :obj:`True`.
 
     Returns:
         list ( dict ): a list of grid coordinate dictionaries

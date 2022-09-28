@@ -20,7 +20,7 @@ import vtool as vt
 import wbia
 
 WITH_GPU = False
-BATCH_SIZE = 16
+BATCH_SIZE = 32
 
 
 ibs = wbia.opendb(dbdir='/data/db')

@@ -21,11 +21,17 @@ def pipeline_filepath_validator(ctx, param, value):
 
 
 @click.command('fetch')
-def fetch():
+@click.option(
+    '--config',
+    help='Which ML models to use for inference',
+    default=None,
+    type=click.Choice(['phase1', 'mvp']),
+)
+def fetch(config):
     """
     Fetch the required machine learning ONNX models for the WIC and LOC
     """
-    scoutbot.fetch()
+    scoutbot.fetch(config=config)
 
 
 @click.command('pipeline')
@@ -36,6 +42,12 @@ def fetch():
     callback=pipeline_filepath_validator,
 )
 @click.option(
+    '--config',
+    help='Which ML models to use for inference',
+    default=None,
+    type=click.Choice(['phase1', 'mvp']),
+)
+@click.option(
     '--output',
     help='Path to output JSON (if unspecified, results are printed to screen)',
     default=None,
@@ -44,39 +56,47 @@ def fetch():
 @click.option(
     '--wic_thresh',
     help='Whole Image Classifier (WIC) confidence threshold',
-    default=int(wic.WIC_THRESH * 100),
+    default=int(wic.CONFIGS[None]['thresh'] * 100),
     type=click.IntRange(0, 100, clamp=True),
 )
 @click.option(
     '--loc_thresh',
     help='Localizer (LOC) confidence threshold',
-    default=int(loc.LOC_THRESH * 100),
+    default=int(loc.CONFIGS[None]['thresh'] * 100),
     type=click.IntRange(0, 100, clamp=True),
 )
 @click.option(
     '--loc_nms_thresh',
     help='Localizer (LOC) non-maximum suppression (NMS) threshold',
-    default=int(loc.NMS_THRESH * 100),
+    default=int(loc.CONFIGS[None]['nms'] * 100),
     type=click.IntRange(0, 100, clamp=True),
 )
 @click.option(
     '--agg_thresh',
     help='Aggregation (AGG) confidence threshold',
-    default=int(agg.AGG_THRESH * 100),
+    default=int(agg.CONFIGS[None]['thresh'] * 100),
     type=click.IntRange(0, 100, clamp=True),
 )
 @click.option(
     '--agg_nms_thresh',
     help='Aggregation (AGG) non-maximum suppression (NMS) threshold',
-    default=int(agg.NMS_THRESH * 100),
+    default=int(agg.CONFIGS[None]['nms'] * 100),
     type=click.IntRange(0, 100, clamp=True),
 )
 def pipeline(
-    filepath, output, wic_thresh, loc_thresh, loc_nms_thresh, agg_thresh, agg_nms_thresh
+    filepath,
+    config,
+    output,
+    wic_thresh,
+    loc_thresh,
+    loc_nms_thresh,
+    agg_thresh,
+    agg_nms_thresh,
 ):
     """
     Run the ScoutBot pipeline on an input image filepath
     """
+    config = config.strip().lower()
     wic_thresh /= 100.0
     loc_thresh /= 100.0
     loc_nms_thresh /= 100.0
@@ -85,6 +105,7 @@ def pipeline(
 
     wic_, detects = scoutbot.pipeline(
         filepath,
+        config=config,
         wic_thresh=wic_thresh,
         loc_thresh=loc_thresh,
         loc_nms_thresh=loc_nms_thresh,
@@ -114,6 +135,12 @@ def pipeline(
     type=str,
 )
 @click.option(
+    '--config',
+    help='Which ML models to use for inference',
+    default=None,
+    type=click.Choice(['phase1', 'mvp']),
+)
+@click.option(
     '--output',
     help='Path to output JSON (if unspecified, results are printed to screen)',
     default=None,
@@ -122,39 +149,47 @@ def pipeline(
 @click.option(
     '--wic_thresh',
     help='Whole Image Classifier (WIC) confidence threshold',
-    default=int(wic.WIC_THRESH * 100),
+    default=int(wic.CONFIGS[None]['thresh'] * 100),
     type=click.IntRange(0, 100, clamp=True),
 )
 @click.option(
     '--loc_thresh',
     help='Localizer (LOC) confidence threshold',
-    default=int(loc.LOC_THRESH * 100),
+    default=int(loc.CONFIGS[None]['thresh'] * 100),
     type=click.IntRange(0, 100, clamp=True),
 )
 @click.option(
     '--loc_nms_thresh',
     help='Localizer (LOC) non-maximum suppression (NMS) threshold',
-    default=int(loc.NMS_THRESH * 100),
+    default=int(loc.CONFIGS[None]['nms'] * 100),
     type=click.IntRange(0, 100, clamp=True),
 )
 @click.option(
     '--agg_thresh',
     help='Aggregation (AGG) confidence threshold',
-    default=int(agg.AGG_THRESH * 100),
+    default=int(agg.CONFIGS[None]['thresh'] * 100),
     type=click.IntRange(0, 100, clamp=True),
 )
 @click.option(
     '--agg_nms_thresh',
     help='Aggregation (AGG) non-maximum suppression (NMS) threshold',
-    default=int(agg.NMS_THRESH * 100),
+    default=int(agg.CONFIGS[None]['nms'] * 100),
     type=click.IntRange(0, 100, clamp=True),
 )
 def batch(
-    filepaths, output, wic_thresh, loc_thresh, loc_nms_thresh, agg_thresh, agg_nms_thresh
+    filepaths,
+    config,
+    output,
+    wic_thresh,
+    loc_thresh,
+    loc_nms_thresh,
+    agg_thresh,
+    agg_nms_thresh,
 ):
     """
     Run the ScoutBot pipeline in batch on a list of input image filepaths
     """
+    config = config.strip().lower()
     wic_thresh /= 100.0
     loc_thresh /= 100.0
     loc_nms_thresh /= 100.0
@@ -165,6 +200,7 @@ def batch(
 
     wic_list, detects_list = scoutbot.batch(
         filepaths,
+        config=config,
         wic_thresh=wic_thresh,
         loc_thresh=loc_thresh,
         loc_nms_thresh=loc_nms_thresh,
@@ -192,7 +228,7 @@ def batch(
 @click.command('example')
 def example():
     """
-    Run a test of the pipeline on an example image
+    Run a test of the pipeline on an example image with the Phase 1 models
     """
     scoutbot.example()
 

@@ -13,12 +13,13 @@ how the entire pipeline can be run on tiles or images, respectively.
 
     # Get image filepath
     filepath = '/path/to/image.ext'
+    config = 'mvp'
 
     # Run tiling
     img_shape, tile_grids, tile_filepaths = tile.compute(filepath)
 
     # Run WIC
-    wic_outputs = wic.post(wic.predict(wic.pre(tile_filepaths)))
+    wic_outputs = wic.post(wic.predict(wic.pre(tile_filepaths, config=config)))
 
     # Threshold for WIC
     flags = [wic_output.get('positive') >= wic_thresh for wic_output in wic_outputs]
@@ -28,7 +29,7 @@ how the entire pipeline can be run on tiles or images, respectively.
     # Run localizer
     loc_outputs = loc.post(
         loc.predict(
-            loc.pre(loc_tile_filepaths)
+            loc.pre(loc_tile_filepaths, config=config)
         ),
         loc_thresh=loc_thresh,
         nms_thresh=loc_nms_thresh
@@ -39,6 +40,7 @@ how the entire pipeline can be run on tiles or images, respectively.
         img_shape,
         loc_tile_grids,
         loc_outputs,
+        config=config,
         agg_thresh=agg_thresh,
         nms_thresh=agg_nms_thresh,
     )
@@ -55,12 +57,12 @@ log = utils.init_logging()
 
 from scoutbot import agg, loc, tile, wic  # NOQA
 
-VERSION = '0.1.14'
+VERSION = '0.1.15'
 version = VERSION
 __version__ = VERSION
 
 
-def fetch(pull=False):
+def fetch(pull=False, config=None):
     """
     Fetch the WIC and Localizer ONNX model files from a CDN if they do not exist locally.
 
@@ -68,8 +70,10 @@ def fetch(pull=False):
     files otherwise do not exist locally on disk.
 
     Args:
-        pull (bool, optional): If :obj:`True`, use the downloaded versions stored in
-            the local system's cache.  Defaults to :obj:`False`.
+        pull (bool, optional): If :obj:`True`, force using the downloaded versions
+            stored in the local system's cache.  Defaults to :obj:`False`.
+        config (str or None, optional): the configuration to use, one of ``phase1``
+            or ``mvp``.  Defaults to :obj:`None` (the ``phase1`` model).
 
     Returns:
         None
@@ -77,17 +81,18 @@ def fetch(pull=False):
     Raises:
         AssertionError: If any model cannot be fetched.
     """
-    wic.fetch(pull=pull)
-    loc.fetch(pull=pull)
+    wic.fetch(pull=pull, config=None)
+    loc.fetch(pull=pull, config=None)
 
 
 def pipeline(
     filepath,
-    wic_thresh=wic.WIC_THRESH,
-    loc_thresh=loc.LOC_THRESH,
-    loc_nms_thresh=loc.NMS_THRESH,
-    agg_thresh=agg.AGG_THRESH,
-    agg_nms_thresh=agg.NMS_THRESH,
+    config=None,
+    wic_thresh=wic.CONFIGS[None]['thresh'],
+    loc_thresh=loc.CONFIGS[None]['thresh'],
+    loc_nms_thresh=loc.CONFIGS[None]['nms'],
+    agg_thresh=agg.CONFIGS[None]['thresh'],
+    agg_nms_thresh=agg.CONFIGS[None]['nms'],
     clean=True,
 ):
     """
@@ -109,6 +114,21 @@ def pipeline(
 
     Args:
         filepath (str): image filepath (relative or absolute)
+        config (str or None, optional): the configuration to use, one of ``phase1``
+            or ``mvp``.  Defaults to :obj:`None` (the ``phase1`` model).
+        wic_thresh (float or None, optional): the confidence threshold for the WIC's
+            predictions.  Defaults to the ``phase1`` configuration setting.
+        loc_thresh (float or None, optional): the confidence threshold for the localizer's
+            predictions.  Defaults to the ``phase1`` configuration setting.
+        nms_thresh (float or None, optional): the non-maximum suppression (NMS) threshold
+            for the localizer's predictions.  Defaults to the ``phase1`` configuration setting.
+        agg_thresh (float or None, optional): the confidence threshold for the aggregated
+            localizer predictions.  Defaults to the ``phase1`` configuration setting.
+        agg_nms_thresh (float or None, optional): the non-maximum suppression (NMS) threshold
+            for the aggregated localizer's predictions.  Defaults to the ``phase1``
+            configuration setting.
+        clean (bool, optional): a flag to clean up any on-disk tiles that were generated.
+            Defaults to :obj:`True`.
 
     Returns:
         tuple ( float, list ( dict ) ): wic score, list of predictions
@@ -119,7 +139,7 @@ def pipeline(
     img_shape, tile_grids, tile_filepaths = tile.compute(filepath)
 
     # Run WIC
-    wic_outputs = wic.post(wic.predict(wic.pre(tile_filepaths)))
+    wic_outputs = wic.post(wic.predict(wic.pre(tile_filepaths, config=config)))
 
     # Threshold for WIC
     wic_ = max(wic_output.get('positive') for wic_output in wic_outputs)
@@ -131,7 +151,7 @@ def pipeline(
 
     # Run localizer
     loc_outputs = loc.post(
-        loc.predict(loc.pre(loc_tile_filepaths)),
+        loc.predict(loc.pre(loc_tile_filepaths, config=config)),
         loc_thresh=loc_thresh,
         nms_thresh=loc_nms_thresh,
     )
@@ -142,6 +162,7 @@ def pipeline(
         img_shape,
         loc_tile_grids,
         loc_outputs,
+        config=config,
         agg_thresh=agg_thresh,
         nms_thresh=agg_nms_thresh,
     )
@@ -156,11 +177,12 @@ def pipeline(
 
 def batch(
     filepaths,
-    wic_thresh=wic.WIC_THRESH,
-    loc_thresh=loc.LOC_THRESH,
-    loc_nms_thresh=loc.NMS_THRESH,
-    agg_thresh=agg.AGG_THRESH,
-    agg_nms_thresh=agg.NMS_THRESH,
+    config=None,
+    wic_thresh=wic.CONFIGS[None]['thresh'],
+    loc_thresh=loc.CONFIGS[None]['thresh'],
+    loc_nms_thresh=loc.CONFIGS[None]['nms'],
+    agg_thresh=agg.CONFIGS[None]['thresh'],
+    agg_nms_thresh=agg.CONFIGS[None]['nms'],
     clean=True,
 ):
     """
@@ -184,6 +206,21 @@ def batch(
 
     Args:
         filepaths (list): list of str image filepath (relative or absolute)
+        config (str or None, optional): the configuration to use, one of ``phase1``
+            or ``mvp``.  Defaults to :obj:`None` (the ``phase1`` model).
+        wic_thresh (float or None, optional): the confidence threshold for the WIC's
+            predictions.  Defaults to the ``phase1`` configuration setting.
+        loc_thresh (float or None, optional): the confidence threshold for the localizer's
+            predictions.  Defaults to the ``phase1`` configuration setting.
+        nms_thresh (float or None, optional): the non-maximum suppression (NMS) threshold
+            for the localizer's predictions.  Defaults to the ``phase1`` configuration setting.
+        agg_thresh (float or None, optional): the confidence threshold for the aggregated
+            localizer predictions.  Defaults to the ``phase1`` configuration setting.
+        agg_nms_thresh (float or None, optional): the non-maximum suppression (NMS) threshold
+            for the aggregated localizer's predictions.  Defaults to the ``phase1``
+            configuration setting.
+        clean (bool, optional): a flag to clean up any on-disk tiles that were generated.
+            Defaults to :obj:`True`.
 
     Returns:
         tuple ( list ( float ), list ( list ( dict ) ) : corresponding list of wic scores, corresponding list of lists of predictions
@@ -218,7 +255,7 @@ def batch(
         tile_grids += batch_grids
         tile_filepaths += batch_filepaths
 
-    wic_outputs = wic.post(wic.predict(wic.pre(tile_filepaths)))
+    wic_outputs = wic.post(wic.predict(wic.pre(tile_filepaths, config=config)))
 
     wic_dict = {}
     for tile_img_filepath, wic_output in zip(tile_img_filepaths, wic_outputs):
@@ -238,7 +275,7 @@ def batch(
 
     # Run localizer
     loc_outputs = loc.post(
-        loc.predict(loc.pre(loc_tile_filepaths)),
+        loc.predict(loc.pre(loc_tile_filepaths, config=config)),
         loc_thresh=loc_thresh,
         nms_thresh=loc_nms_thresh,
     )
@@ -266,6 +303,7 @@ def batch(
             img_shape,
             loc_tile_grids,
             loc_outputs,
+            config=config,
             agg_thresh=agg_thresh,
             nms_thresh=agg_nms_thresh,
         )
@@ -283,7 +321,7 @@ def batch(
 
 def example():
     """
-    Run the pipeline on an example image
+    Run the pipeline on an example image with the Phase 1 models
     """
     TEST_IMAGE = 'scout.example.jpg'
     TEST_IMAGE_HASH = (

@@ -20,7 +20,7 @@ class ImageFilePathList(torch.utils.data.Dataset):
         args = (filepaths, targets) if self.targets else (filepaths,)
         self.samples = list(zip(*args))
 
-        if self.targets:
+        if self.targets:  # nocov
             self.classes = sorted(set(ut.take_column(self.samples, 1)))
             self.class_to_idx = {self.classes[i]: i for i in range(len(self.classes))}
         else:
@@ -59,19 +59,6 @@ class ImageFilePathList(torch.utils.data.Dataset):
 
     def __len__(self):
         return len(self.samples)
-
-    def __repr__(self):
-        fmt_str = 'Dataset ' + self.__class__.__name__ + '\n'
-        fmt_str += '    Number of samples: {}\n'.format(self.__len__())
-        tmp = '    Transforms (if any): '
-        fmt_str += '{}{}\n'.format(
-            tmp, self.transform.__repr__().replace('\n', '\n' + ' ' * len(tmp))
-        )
-        tmp = '    Target Transforms (if any): '
-        fmt_str += '{}{}'.format(
-            tmp, self.target_transform.__repr__().replace('\n', '\n' + ' ' * len(tmp))
-        )
-        return fmt_str
 
 
 class Augmentations(object):
