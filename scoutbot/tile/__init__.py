@@ -44,7 +44,7 @@ def compute(img_filepath, grid1=True, grid2=True, ext=None, **kwargs):
     img = cv2.imread(img_filepath)
     shape = img.shape
 
-    log.info(f'Computing tiles (grid1={grid1}, grid2={grid2}) on {img_filepath}')
+    log.debug(f'Computing tiles (grid1={grid1}, grid2={grid2}) on {img_filepath}')
 
     grids = []
     if grid1:
@@ -56,7 +56,7 @@ def compute(img_filepath, grid1=True, grid2=True, ext=None, **kwargs):
     for grid, filepath in zip(grids, filepaths):
         assert tile_write(img, grid, filepath)
 
-    log.info(f'Rendered {len(filepaths)} tiles')
+    log.debug(f'Rendered {len(filepaths)} tiles')
 
     return shape, grids, filepaths
 

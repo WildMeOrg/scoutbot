@@ -61,7 +61,7 @@ def test_wic_onnx_pipeline_phase1():
 
     assert len(outputs) == 1
     output = outputs[0]
-    classes = CONFIGS[None]['classes']
+    classes = CONFIGS['phase1']['classes']
     assert output.keys() == set(classes)
     assert output['positive'] > output['negative']
     assert abs(output['negative'] - 0.00001503) < 1e-4
@@ -101,7 +101,7 @@ def test_wic_onnx_pipeline_mvp():
 
     assert len(outputs) == 1
     output = outputs[0]
-    classes = CONFIGS[None]['classes']
+    classes = CONFIGS['mvp']['classes']
     assert output.keys() == set(classes)
     assert output['positive'] > output['negative']
     assert abs(output['negative'] - 0.00000000) < 1e-4

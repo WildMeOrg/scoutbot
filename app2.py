@@ -8,14 +8,26 @@ import numpy as np
 import scoutbot
 
 
-def predict(filepath, wic_thresh, loc_thresh, agg_thresh, loc_nms_thresh, agg_nms_thresh):
+def predict(
+    filepath, config, wic_thresh, loc_thresh, agg_thresh, loc_nms_thresh, agg_nms_thresh
+):
     start = time.time()
+
+    if config == 'MVP':
+        config = 'mvp'
+    elif config == 'Phase 1':
+        config = 'phase1'
+    else:
+        raise ValueError()
 
     wic_thresh /= 100.0
     loc_thresh /= 100.0
     loc_nms_thresh /= 100.0
     agg_thresh /= 100.0
     agg_nms_thresh /= 100.0
+
+    loc_nms_thresh = 1.0 - loc_nms_thresh
+    agg_nms_thresh = 1.0 - agg_nms_thresh
 
     # Load data
     img = cv2.imread(filepath)
@@ -26,7 +38,13 @@ def predict(filepath, wic_thresh, loc_thresh, agg_thresh, loc_nms_thresh, agg_nm
     megapixels = pixels / 1e6
 
     wic_, detects = scoutbot.pipeline(
-        filepath, wic_thresh, loc_thresh, loc_nms_thresh, agg_thresh, agg_nms_thresh
+        filepath,
+        config=config,
+        wic_thresh=wic_thresh,
+        loc_thresh=loc_thresh,
+        loc_nms_thresh=loc_nms_thresh,
+        agg_thresh=agg_thresh,
+        agg_nms_thresh=agg_nms_thresh,
     )
 
     output = []
@@ -52,7 +70,7 @@ def predict(filepath, wic_thresh, loc_thresh, agg_thresh, loc_nms_thresh, agg_nm
     speed = duration / megapixels
     speed = f'{speed:0.02f} seconds per megapixel (total: {megapixels:0.02f} megapixels, {duration:0.02f} seconds)'
 
-    return img, speed, output
+    return img, speed, wic_, output
 
 
 interface = gr.Interface(
@@ -60,28 +78,35 @@ interface = gr.Interface(
     title='Wild Me Scout - Image ML Demo',
     inputs=[
         gr.Image(type='filepath'),
-        gr.Slider(label='WIC Confidence Threshold', value=20),
-        gr.Slider(label='Localizer Confidence Threshold', value=48),
+        gr.Radio(
+            label='Model Configuration',
+            type='value',
+            choices=['Phase 1', 'MVP'],
+            value='MVP',
+        ),
+        gr.Slider(label='WIC Confidence Threshold', value=7),
+        gr.Slider(label='Localizer Confidence Threshold', value=14),
         gr.Slider(label='Aggregation Confidence Threshold', value=51),
-        gr.Slider(label='Localizer NMS Threshold', value=20),
-        gr.Slider(label='Aggregation NMS Threshold', value=20),
+        gr.Slider(label='Localizer NMS Threshold', value=80),
+        gr.Slider(label='Aggregation NMS Threshold', value=80),
     ],
     outputs=[
         gr.Image(type='numpy'),
         gr.Textbox(label='Prediction Speed', interactive=False),
+        gr.Number(label='Predicted WIC Confidence', precision=5, interactive=False),
         gr.Textbox(label='Predicted Detections', interactive=False),
     ],
     examples=[
-        ['examples/0d4e4df2-7b69-91b1-1985-c8421f2f3253.jpg', 20, 48, 51, 20, 20],
-        ['examples/18cef191-74ed-2b5e-55a5-f58bd3d483ff.jpg', 10, 48, 51, 20, 20],
-        ['examples/1be4d40a-6fd0-42ce-da6c-294e45781f41.jpg', 20, 48, 51, 20, 20],
-        ['examples/1d3c85e9-ee24-f290-e7e1-6e338f2eaebb.jpg', 20, 48, 51, 20, 20],
-        ['examples/3e043302-af1c-75a7-4057-3a2f25c123bf.jpg', 20, 48, 51, 20, 20],
-        ['examples/43ecc08d-502a-7a51-9d68-3e40a76439a2.jpg', 20, 48, 51, 20, 20],
-        ['examples/479058af-e774-e6aa-a2b0-9a42dd6ff8b1.jpg', 20, 48, 51, 20, 20],
-        ['examples/7c910b87-ae3a-f580-d431-03cd89793803.jpg', 20, 48, 51, 20, 20],
-        ['examples/8fa04489-cd94-7d8f-7e2e-5f0fe2f7ae76.jpg', 20, 48, 51, 20, 20],
-        ['examples/bb7b4345-b98a-c727-4c94-6090f0aa4355.jpg', 20, 48, 51, 20, 20],
+        ['examples/0d4e4df2-7b69-91b1-1985-c8421f2f3253.jpg', 'MVP', 7, 14, 51, 80, 80],
+        ['examples/18cef191-74ed-2b5e-55a5-f58bd3d483ff.jpg', 'MVP', 7, 14, 51, 80, 80],
+        ['examples/1be4d40a-6fd0-42ce-da6c-294e45781f41.jpg', 'MVP', 7, 14, 51, 80, 80],
+        ['examples/1d3c85e9-ee24-f290-e7e1-6e338f2eaebb.jpg', 'MVP', 7, 14, 51, 80, 80],
+        ['examples/3e043302-af1c-75a7-4057-3a2f25c123bf.jpg', 'MVP', 7, 14, 51, 80, 80],
+        ['examples/43ecc08d-502a-7a51-9d68-3e40a76439a2.jpg', 'MVP', 7, 14, 51, 80, 80],
+        ['examples/479058af-e774-e6aa-a2b0-9a42dd6ff8b1.jpg', 'MVP', 7, 14, 51, 80, 80],
+        ['examples/7c910b87-ae3a-f580-d431-03cd89793803.jpg', 'MVP', 7, 14, 51, 80, 80],
+        ['examples/8fa04489-cd94-7d8f-7e2e-5f0fe2f7ae76.jpg', 'MVP', 7, 14, 51, 80, 80],
+        ['examples/bb7b4345-b98a-c727-4c94-6090f0aa4355.jpg', 'MVP', 7, 14, 51, 80, 80],
     ],
     cache_examples=True,
     allow_flagging='never',

@@ -8,6 +8,7 @@ output into usable detection bounding boxes with class labels and confidence
 scores.
 '''
 import os
+import warnings
 from os.path import exists, join
 from pathlib import Path
 
@@ -20,7 +21,7 @@ import torchvision
 import tqdm
 import utool as ut
 
-from scoutbot import log
+from scoutbot import QUIET, log
 from scoutbot.loc.transforms import (
     Compose,
     GetBoundingBoxes,
@@ -36,7 +37,7 @@ INPUT_SIZE = (416, 416)
 INPUT_SIZE_H, INPUT_SIZE_W = INPUT_SIZE
 NETWORK_SIZE = (INPUT_SIZE_H, INPUT_SIZE_W, 3)
 
-DEFAULT_CONFIG = os.getenv('CONFIG', 'phase1').strip().lower()
+DEFAULT_CONFIG = os.getenv('CONFIG', 'mvp').strip().lower()
 CONFIGS = {
     'phase1': {
         'batch': 16,
@@ -58,7 +59,7 @@ CONFIGS = {
         'batch': 32,
         'name': 'scout.loc.mvp.0.onnx',
         'path': join(PWD, 'models', 'onnx', 'scout.loc.mvp.0.onnx'),
-        'hash': 'AAA',
+        'hash': 'f5bd22fbacc91ba4cf5abaef5197d1645ae5bc4e63e88839e6848c48b3710c58',
         'classes': [
             'buffalo',
             'camel',
@@ -100,7 +101,7 @@ CONFIGS = {
             'wildebeest',
             'zebra',
         ],
-        'thresh': 0.4,
+        'thresh': 0.14,
         'nms': 0.8,
         'anchors': [
             (1.3221, 1.73145),
@@ -112,6 +113,8 @@ CONFIGS = {
     },
 }
 CONFIGS[None] = CONFIGS[DEFAULT_CONFIG]
+CONFIGS['old'] = CONFIGS['phase1']
+CONFIGS['new'] = CONFIGS['mvp']
 assert DEFAULT_CONFIG in CONFIGS
 
 
@@ -126,7 +129,7 @@ def fetch(pull=False, config=DEFAULT_CONFIG):
         pull (bool, optional): If :obj:`True`, force using the downloaded versions
             stored in the local system's cache.  Defaults to :obj:`False`.
         config (str or None, optional): the configuration to use, one of ``phase1``
-            or ``mvp``.  Defaults to :obj:`None` (the ``phase1`` model).
+            or ``mvp``.  Defaults to :obj:`None`.
 
     Returns:
         str: local ONNX model file path.
@@ -144,11 +147,11 @@ def fetch(pull=False, config=DEFAULT_CONFIG):
         onnx_model = pooch.retrieve(
             url=f'https://wildbookiarepository.azureedge.net/models/{model_name}',
             known_hash=model_hash,
-            progressbar=True,
+            progressbar=not QUIET,
         )
         assert exists(onnx_model)
 
-    log.info(f'LOC Model: {onnx_model}')
+    log.debug(f'LOC Model: {onnx_model}')
 
     return onnx_model
 
@@ -165,7 +168,7 @@ def pre(inputs, config=DEFAULT_CONFIG):
     Args:
         inputs (list(str)): list of tile image filepaths (relative or absolute)
         config (str or None, optional): the configuration to use, one of ``phase1``
-            or ``mvp``.  Defaults to :obj:`None` (the ``phase1`` model).
+            or ``mvp``.  Defaults to :obj:`None`.
 
     Returns:
         generator ( np.ndarray<np.float32>, list ( tuple ( int ) ), int, str ):
@@ -179,7 +182,7 @@ def pre(inputs, config=DEFAULT_CONFIG):
         return [], config
 
     batch_size = CONFIGS[config]['batch']
-    log.info(f'Preprocessing {len(inputs)} LOC inputs in batches of {batch_size}')
+    log.debug(f'Preprocessing {len(inputs)} LOC inputs in batches of {batch_size}')
 
     transform = torchvision.transforms.ToTensor()
 
@@ -221,11 +224,11 @@ def predict(gen):
             - - list of each tile's original size
             - - model configuration
     """
-    log.info('Running LOC inference')
+    log.debug('Running LOC inference')
 
     ort_sessions = {}
 
-    for chunk, sizes, trim, config in tqdm.tqdm(gen):
+    for chunk, sizes, trim, config in tqdm.tqdm(gen, disable=QUIET):
         assert len(chunk) == len(sizes)
 
         if len(chunk) == 0:
@@ -236,10 +239,13 @@ def predict(gen):
             if ort_session is None:
                 onnx_model = fetch(config=config)
 
-                ort_session = ort.InferenceSession(
-                    onnx_model,
-                    providers=['CUDAExecutionProvider', 'CPUExecutionProvider'],
-                )
+                with warnings.catch_warnings():
+                    warnings.filterwarnings('ignore', category=UserWarning)
+                    ort_session = ort.InferenceSession(
+                        onnx_model,
+                        providers=['CUDAExecutionProvider', 'CPUExecutionProvider'],
+                    )
+
                 ort_sessions[config] = ort_session
 
             assert trim <= len(chunk)
@@ -286,16 +292,14 @@ def post(gen, loc_thresh=None, nms_thresh=None):
         gen (generator): generator of batches of raw ONNX model outputs and sizes,
             the return of :meth:`scoutbot.loc.predict`
         loc_thresh (float or None, optional): the confidence threshold for the localizer's
-            predictions.  Defaults to None.  Defaults to :obj:`None`
-            (the ``phase1`` model).
+            predictions.  Defaults to None.  Defaults to :obj:`None`.
         nms_thresh (float or None, optional): the non-maximum suppression (NMS) threshold
-            for the localizer's predictions.  Defaults to :obj:`None`
-            (the ``phase1`` model).
+            for the localizer's predictions.  Defaults to :obj:`None`.
 
     Returns:
         list ( list ( dict ) ): nested list of Localizer predictions
     """
-    log.info('Postprocessing LOC outputs')
+    log.debug('Postprocessing LOC outputs')
 
     # Exhaust generator and format output
     outputs = []
@@ -321,12 +325,25 @@ def post(gen, loc_thresh=None, nms_thresh=None):
 
         preds = postprocess(torch.tensor(preds))
 
+        if config in ['phase1']:
+            class_map = {}
+        elif config in [None, 'mvp']:
+            class_map = {
+                'dead_animalwhite_bones': 'white_bones',
+                'deadbones': 'white_bones',
+                'elecarcass_old': 'white_bones',
+                'gazelle_gr': 'gazelle_grants',
+                'gazelle_th': 'gazelle_thomsons',
+            }
+        else:
+            raise ValueError()
+
         for pred, size in zip(preds, sizes):
             output = ReverseLetterbox.apply([pred], INPUT_SIZE, size)
             output = output[0]
             output = [
                 {
-                    'l': detect.class_label,
+                    'l': class_map.get(detect.class_label, detect.class_label),
                     'c': detect.confidence,
                     'x': detect.x_top_left,
                     'y': detect.y_top_left,

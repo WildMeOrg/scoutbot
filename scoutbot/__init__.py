@@ -19,7 +19,11 @@ how the entire pipeline can be run on tiles or images, respectively.
     img_shape, tile_grids, tile_filepaths = tile.compute(filepath)
 
     # Run WIC
-    wic_outputs = wic.post(wic.predict(wic.pre(tile_filepaths, config=config)))
+    wic_outputs = wic.post(wic.predict(wic.pre(
+        tile_filepaths,
+        config=config,
+        # batch_size=wic_batch_size,  # Optional override of config
+    )))
 
     # Threshold for WIC
     flags = [wic_output.get('positive') >= wic_thresh for wic_output in wic_outputs]
@@ -31,8 +35,8 @@ how the entire pipeline can be run on tiles or images, respectively.
         loc.predict(
             loc.pre(loc_tile_filepaths, config=config)
         ),
-        loc_thresh=loc_thresh,
-        nms_thresh=loc_nms_thresh
+        # loc_thresh=loc_thresh,  # Optional override of config
+        # nms_thresh=loc_nms_thresh,  # Optional override of config
     )
 
     # Run Aggregation and get final detections
@@ -41,8 +45,8 @@ how the entire pipeline can be run on tiles or images, respectively.
         loc_tile_grids,
         loc_outputs,
         config=config,
-        agg_thresh=agg_thresh,
-        nms_thresh=agg_nms_thresh,
+        # agg_thresh=agg_thresh,  # Optional override of config
+        # nms_thresh=agg_nms_thresh,  # Optional override of config
     )
 '''
 from os.path import exists
@@ -53,11 +57,12 @@ import utool as ut
 from scoutbot import utils
 
 log = utils.init_logging()
+QUIET = not utils.VERBOSE
 
 
 from scoutbot import agg, loc, tile, wic  # NOQA
 
-VERSION = '0.1.15'
+VERSION = '0.1.16'
 version = VERSION
 __version__ = VERSION
 
@@ -73,7 +78,7 @@ def fetch(pull=False, config=None):
         pull (bool, optional): If :obj:`True`, force using the downloaded versions
             stored in the local system's cache.  Defaults to :obj:`False`.
         config (str or None, optional): the configuration to use, one of ``phase1``
-            or ``mvp``.  Defaults to :obj:`None` (the ``phase1`` model).
+            or ``mvp``.  Defaults to :obj:`None`.
 
     Returns:
         None
@@ -115,17 +120,17 @@ def pipeline(
     Args:
         filepath (str): image filepath (relative or absolute)
         config (str or None, optional): the configuration to use, one of ``phase1``
-            or ``mvp``.  Defaults to :obj:`None` (the ``phase1`` model).
+            or ``mvp``.  Defaults to :obj:`None`.
         wic_thresh (float or None, optional): the confidence threshold for the WIC's
-            predictions.  Defaults to the ``phase1`` configuration setting.
+            predictions.  Defaults to the default configuration setting.
         loc_thresh (float or None, optional): the confidence threshold for the localizer's
-            predictions.  Defaults to the ``phase1`` configuration setting.
+            predictions.  Defaults to the default configuration setting.
         nms_thresh (float or None, optional): the non-maximum suppression (NMS) threshold
-            for the localizer's predictions.  Defaults to the ``phase1`` configuration setting.
+            for the localizer's predictions.  Defaults to the default configuration setting.
         agg_thresh (float or None, optional): the confidence threshold for the aggregated
-            localizer predictions.  Defaults to the ``phase1`` configuration setting.
+            localizer predictions. Defaults to the default configuration setting.
         agg_nms_thresh (float or None, optional): the non-maximum suppression (NMS) threshold
-            for the aggregated localizer's predictions.  Defaults to the ``phase1``
+            for the aggregated localizer's predictions.  Defaults to the default
             configuration setting.
         clean (bool, optional): a flag to clean up any on-disk tiles that were generated.
             Defaults to :obj:`True`.
@@ -147,7 +152,7 @@ def pipeline(
     loc_tile_grids = ut.compress(tile_grids, flags)
     loc_tile_filepaths = ut.compress(tile_filepaths, flags)
 
-    log.info(f'Filtered to {len(loc_tile_filepaths)} tiles')
+    log.debug(f'Filtered to {len(loc_tile_filepaths)} tiles')
 
     # Run localizer
     loc_outputs = loc.post(
@@ -207,17 +212,17 @@ def batch(
     Args:
         filepaths (list): list of str image filepath (relative or absolute)
         config (str or None, optional): the configuration to use, one of ``phase1``
-            or ``mvp``.  Defaults to :obj:`None` (the ``phase1`` model).
+            or ``mvp``.  Defaults to :obj:`None`.
         wic_thresh (float or None, optional): the confidence threshold for the WIC's
-            predictions.  Defaults to the ``phase1`` configuration setting.
+            predictions.  Defaults to the default configuration setting.
         loc_thresh (float or None, optional): the confidence threshold for the localizer's
-            predictions.  Defaults to the ``phase1`` configuration setting.
+            predictions.  Defaults to the default configuration setting.
         nms_thresh (float or None, optional): the non-maximum suppression (NMS) threshold
-            for the localizer's predictions.  Defaults to the ``phase1`` configuration setting.
+            for the localizer's predictions.  Defaults to the default configuration setting.
         agg_thresh (float or None, optional): the confidence threshold for the aggregated
-            localizer predictions.  Defaults to the ``phase1`` configuration setting.
+            localizer predictions.  Defaults to the default configuration setting.
         agg_nms_thresh (float or None, optional): the non-maximum suppression (NMS) threshold
-            for the aggregated localizer's predictions.  Defaults to the ``phase1``
+            for the aggregated localizer's predictions.  Defaults to the default
             configuration setting.
         clean (bool, optional): a flag to clean up any on-disk tiles that were generated.
             Defaults to :obj:`True`.
@@ -271,7 +276,7 @@ def batch(
     loc_tile_grids = ut.compress(tile_grids, flags)
     loc_tile_filepaths = ut.compress(tile_filepaths, flags)
 
-    log.info(f'Filtered to {len(loc_tile_filepaths)} tiles')
+    log.debug(f'Filtered to {len(loc_tile_filepaths)} tiles')
 
     # Run localizer
     loc_outputs = loc.post(
@@ -335,8 +340,8 @@ def example():
     )
     assert exists(img_filepath)
 
-    log.info(f'Running pipeline on image: {img_filepath}')
+    log.debug(f'Running pipeline on image: {img_filepath}')
 
     wic_, detects = pipeline(img_filepath)
 
-    log.info(ut.repr3(detects))
+    log.debug(ut.repr3(detects))

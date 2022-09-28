@@ -3,9 +3,12 @@
 Scoutbot utilities file for common and handy functions.
 '''
 import logging
+import os
 from logging.handlers import TimedRotatingFileHandler
 
 DAYS = 21
+VERBOSE = os.getenv('VERBOSE', None) is not None
+DEFAULT_LOG_LEVEL = logging.DEBUG if VERBOSE else logging.INFO
 
 
 def init_logging():
@@ -43,7 +46,7 @@ def init_logging():
         'tracebacks_show_locals': True,
     }
     logging_kwargs = {
-        'level': logging.INFO,
+        'level': DEFAULT_LOG_LEVEL,
         'format': '[%(name)s] %(message)s',
         'datefmt': '[%X]',
     }
@@ -64,7 +67,7 @@ def init_logging():
     # Setup global logger with the handlers and set the default level to INFO
     logging.basicConfig(handlers=handlers, **logging_kwargs)
     logger = logging.getLogger()
-    logger.setLevel(logging.INFO)
+    logger.setLevel(DEFAULT_LOG_LEVEL)
     log = logging.getLogger(name)
 
     return log

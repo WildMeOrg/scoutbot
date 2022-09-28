@@ -25,7 +25,7 @@ def pipeline_filepath_validator(ctx, param, value):
     '--config',
     help='Which ML models to use for inference',
     default=None,
-    type=click.Choice(['phase1', 'mvp']),
+    type=click.Choice(['phase1', 'mvp', 'old', 'new']),
 )
 def fetch(config):
     """
@@ -45,7 +45,7 @@ def fetch(config):
     '--config',
     help='Which ML models to use for inference',
     default=None,
-    type=click.Choice(['phase1', 'mvp']),
+    type=click.Choice(['phase1', 'mvp', 'old', 'new']),
 )
 @click.option(
     '--output',
@@ -94,9 +94,30 @@ def pipeline(
     agg_nms_thresh,
 ):
     """
-    Run the ScoutBot pipeline on an input image filepath
+    Run the ScoutBot pipeline on an input image filepath.  An example output of the JSON
+    can be seen below.
+
+    .. code-block:: javascript
+
+            {
+                '/path/to/image.ext': {
+                    'wic': 0.5,
+                    'loc': [
+                        {
+                            'l': 'elephant',
+                            'c': 0.9,
+                            'x': 100,
+                            'y': 100,
+                            'w': 50,
+                            'h': 10
+                        },
+                        ...
+                    ],
+                }
+            }
     """
-    config = config.strip().lower()
+    if config is not None:
+        config = config.strip().lower()
     wic_thresh /= 100.0
     loc_thresh /= 100.0
     loc_nms_thresh /= 100.0
@@ -113,19 +134,18 @@ def pipeline(
         agg_nms_thresh=agg_nms_thresh,
     )
 
+    data = {
+        filepath: {
+            'wic': wic_,
+            'loc': detects,
+        }
+    }
+
     if output:
         with open(output, 'w') as outfile:
-            data = {
-                filepath: {
-                    'wic': wic_,
-                    'loc': detects,
-                }
-            }
             json.dump(data, outfile)
     else:
-        log.info(filepath)
-        log.info(f'WIC: {wic_:0.04f}')
-        log.info('LOC: {}'.format(ut.repr3(detects)))
+        print(ut.repr3(data))
 
 
 @click.command('batch')
@@ -138,7 +158,7 @@ def pipeline(
     '--config',
     help='Which ML models to use for inference',
     default=None,
-    type=click.Choice(['phase1', 'mvp']),
+    type=click.Choice(['phase1', 'mvp', 'old', 'new']),
 )
 @click.option(
     '--output',
@@ -187,16 +207,52 @@ def batch(
     agg_nms_thresh,
 ):
     """
-    Run the ScoutBot pipeline in batch on a list of input image filepaths
+    Run the ScoutBot pipeline in batch on a list of input image filepaths.
+    An example output of the JSON can be seen below.
+
+    .. code-block:: javascript
+
+            {
+                '/path/to/image1.ext': {
+                    'wic': 0.5,
+                    'loc': [
+                        {
+                            'l': 'elephant',
+                            'c': 0.9,
+                            'x': 100,
+                            'y': 100,
+                            'w': 50,
+                            'h': 10
+                        },
+                        ...
+                    ],
+                },
+                '/path/to/image2.ext': {
+                    'wic': 0.5,
+                    'loc': [
+                        {
+                            'l': 'elephant',
+                            'c': 0.9,
+                            'x': 100,
+                            'y': 100,
+                            'w': 50,
+                            'h': 10
+                        },
+                        ...
+                    ],
+                },
+                ...
+            }
     """
-    config = config.strip().lower()
+    if config is not None:
+        config = config.strip().lower()
     wic_thresh /= 100.0
     loc_thresh /= 100.0
     loc_nms_thresh /= 100.0
     agg_thresh /= 100.0
     agg_nms_thresh /= 100.0
 
-    log.info(f'Running batch on {len(filepaths)} files...')
+    log.debug(f'Running batch on {len(filepaths)} files...')
 
     wic_list, detects_list = scoutbot.batch(
         filepaths,
@@ -209,20 +265,18 @@ def batch(
     )
     results = zip(filepaths, wic_list, detects_list)
 
+    data = {}
+    for filepath, wic_, detects in results:
+        data[filepath] = {
+            'wic': wic,
+            'loc': detects,
+        }
+
     if output:
         with open(output, 'w') as outfile:
-            data = {}
-            for filepath, wic_, detects in results:
-                data[filepath] = {
-                    'wic': wic,
-                    'loc': detects,
-                }
-                json.dump(data, outfile)
+            json.dump(data, outfile)
     else:
-        for filepath, wic_, detects in results:
-            log.info(filepath)
-            log.info(f'WIC: {wic_:0.04f}')
-            log.info('LOC: {}'.format(ut.repr3(detects)))
+        print(ut.repr3(data))
 
 
 @click.command('example')

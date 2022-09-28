@@ -73,6 +73,7 @@ jobs:
         run: |
           docker buildx build \
               -t wildme/scoutbot:${{ env.IMAGE_TAG }} \
+              -t wildme/scoutbot:latest \
               --platform linux/amd64 \
               --push \
               .

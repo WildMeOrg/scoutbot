@@ -138,7 +138,7 @@ There is Sphinx documentation in the ``docs/`` folder, which can be built by run
 Logging
 -------
 
-The script uses Python's built-in logging functionality called ``logging``.  All print functions are replaced with :func:``log.info``, which sends the output to two places:
+The script uses Python's built-in logging functionality called ``logging``.  All print functions are replaced with ``log.info()``, which sends the output to two places:
 
     - 1. the terminal window, and
     - 2. the file `scoutbot.log`

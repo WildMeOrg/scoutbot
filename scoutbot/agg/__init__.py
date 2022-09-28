@@ -15,7 +15,7 @@ from scoutbot import log
 
 MARGIN = 32.0
 
-DEFAULT_CONFIG = os.getenv('CONFIG', 'phase1').strip().lower()
+DEFAULT_CONFIG = os.getenv('CONFIG', 'mvp').strip().lower()
 CONFIGS = {
     'phase1': {
         'thresh': 0.4,
@@ -27,6 +27,8 @@ CONFIGS = {
     },
 }
 CONFIGS[None] = CONFIGS[DEFAULT_CONFIG]
+CONFIGS['old'] = CONFIGS['phase1']
+CONFIGS['new'] = CONFIGS['mvp']
 assert DEFAULT_CONFIG in CONFIGS
 
 
@@ -199,13 +201,11 @@ def compute(
         tile_grids (list of dict): a list of tile coordinates
         loc_output (list of list of dict): the output predictions from the Localizer.
         config (str or None, optional): the configuration to use, one of ``phase1``
-            or ``mvp``.  Defaults to :obj:`None` (the ``phase1`` model).
+            or ``mvp``.  Defaults to :obj:`None`.
         agg_thresh (float or None, optional): the confidence threshold for the aggregated
-            localizer predictions.  Defaults to None.  Defaults to :obj:`None`
-            (the ``phase1`` model's settings).
+            localizer predictions.  Defaults to None.  Defaults to :obj:`None`.
         nms_thresh (float or None, optional): the non-maximum suppression (NMS) threshold
-            for the aggregated localizer's predictions.  Defaults to :obj:`None`
-            (the ``phase1`` model's settings).
+            for the aggregated localizer's predictions.  Defaults to :obj:`None`.
 
     Returns:
         list ( dict ): list of Localizer predictions
@@ -219,7 +219,7 @@ def compute(
     if nms_thresh is None:
         nms_thresh = CONFIGS[config]['nms']
 
-    log.info(f'Aggregating {len(tile_grids)} tiles onto {img_shape} canvas')
+    log.debug(f'Aggregating {len(tile_grids)} tiles onto {img_shape} canvas')
 
     if len(tile_grids) == 0:
         final = []
@@ -251,6 +251,6 @@ def compute(
             final = ut.take(detects, keeps)
             final.sort(key=lambda val: val['c'], reverse=True)
 
-    log.info(f'Found {len(final)} detections')
+    log.debug(f'Found {len(final)} detections')
 
     return final

@@ -7,6 +7,7 @@ WIC ONNX model on this input, and finally how to convert this raw CNN output
 into usable confidence scores.
 '''
 import os
+import warnings
 from os.path import exists, join
 from pathlib import Path
 
@@ -16,7 +17,7 @@ import pooch
 import torch
 import tqdm
 
-from scoutbot import log
+from scoutbot import QUIET, log
 from scoutbot.wic.dataloader import (  # NOQA
     BATCH_SIZE,
     INPUT_SIZE,
@@ -27,7 +28,7 @@ from scoutbot.wic.dataloader import (  # NOQA
 PWD = Path(__file__).absolute().parent
 
 
-DEFAULT_CONFIG = os.getenv('CONFIG', 'phase1').strip().lower()
+DEFAULT_CONFIG = os.getenv('CONFIG', 'mvp').strip().lower()
 CONFIGS = {
     'phase1': {
         'name': 'scout.wic.5fbfff26.3.0.onnx',
@@ -45,6 +46,8 @@ CONFIGS = {
     },
 }
 CONFIGS[None] = CONFIGS[DEFAULT_CONFIG]
+CONFIGS['old'] = CONFIGS['phase1']
+CONFIGS['new'] = CONFIGS['mvp']
 assert DEFAULT_CONFIG in CONFIGS
 
 
@@ -59,7 +62,7 @@ def fetch(pull=False, config=DEFAULT_CONFIG):
         pull (bool, optional): If :obj:`True`, force using the downloaded versions
             stored in the local system's cache.  Defaults to :obj:`False`.
         config (str or None, optional): the configuration to use, one of ``phase1``
-            or ``mvp``.  Defaults to :obj:`None` (the ``phase1`` model).
+            or ``mvp``.  Defaults to :obj:`None`.
 
     Returns:
         str: local ONNX model file path.
@@ -77,11 +80,11 @@ def fetch(pull=False, config=DEFAULT_CONFIG):
         onnx_model = pooch.retrieve(
             url=f'https://wildbookiarepository.azureedge.net/models/{model_name}',
             known_hash=model_hash,
-            progressbar=True,
+            progressbar=not QUIET,
         )
         assert exists(onnx_model)
 
-    log.info(f'WIC Model: {onnx_model}')
+    log.debug(f'WIC Model: {onnx_model}')
 
     return onnx_model
 
@@ -100,7 +103,7 @@ def pre(inputs, batch_size=BATCH_SIZE, config=DEFAULT_CONFIG):
         batch_size (int, optional): the maximum number of images to load in a
             single batch.  Defaults to the environment variable ``WIC_BATCH_SIZE``.
         config (str or None, optional): the configuration to use, one of ``phase1``
-            or ``mvp``.  Defaults to :obj:`None` (the ``phase1`` model).
+            or ``mvp``.  Defaults to :obj:`None`.
 
     Returns:
         generator ( np.ndarray<np.float32>, str ):
@@ -111,7 +114,7 @@ def pre(inputs, batch_size=BATCH_SIZE, config=DEFAULT_CONFIG):
     if len(inputs) == 0:
         return [], config
 
-    log.info(f'Preprocessing {len(inputs)} WIC inputs in batches of {batch_size}')
+    log.debug(f'Preprocessing {len(inputs)} WIC inputs in batches of {batch_size}')
 
     transform = _init_transforms()
     dataset = ImageFilePathList(inputs, transform=transform)
@@ -137,19 +140,23 @@ def predict(gen):
             - - list of raw ONNX model outputs as shape ``(b, n)``
             - - model configuration
     """
-    log.info('Running WIC inference')
+    log.debug('Running WIC inference')
 
     ort_sessions = {}
 
-    for chunk, config in tqdm.tqdm(gen):
+    for chunk, config in tqdm.tqdm(gen, disable=QUIET):
 
         ort_session = ort_sessions.get(config)
         if ort_session is None:
             onnx_model = fetch(config=config)
 
-            ort_session = ort.InferenceSession(
-                onnx_model, providers=['CUDAExecutionProvider', 'CPUExecutionProvider']
-            )
+            with warnings.catch_warnings():
+                warnings.filterwarnings('ignore', category=UserWarning)
+                ort_session = ort.InferenceSession(
+                    onnx_model,
+                    providers=['CUDAExecutionProvider', 'CPUExecutionProvider'],
+                )
+
             ort_sessions[config] = ort_session
 
         if len(chunk) == 0:
@@ -178,7 +185,7 @@ def post(gen):
         list ( dict ): list of WIC predictions
     """
     # Exhaust generator and format output
-    log.info('Postprocessing WIC outputs')
+    log.debug('Postprocessing WIC outputs')
 
     outputs = []
     for preds, config in gen:
