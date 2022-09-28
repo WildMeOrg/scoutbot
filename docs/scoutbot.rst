@@ -7,7 +7,6 @@ pretrained for inference in a production environment.
 
 .. toctree::
    :maxdepth: 3
-   :caption: Contents:
 
 .. include:: overview.rst
 

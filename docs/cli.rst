@@ -7,7 +7,6 @@ models that have been pretrained for inference in a production environment.
 
 .. toctree::
    :maxdepth: 3
-   :caption: Contents:
 
 .. click:: scoutbot.scoutbot:cli
    :prog: scoutbot

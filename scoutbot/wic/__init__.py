@@ -10,6 +10,7 @@ import os
 import warnings
 from os.path import exists, join
 from pathlib import Path
+from sys import platform
 
 import numpy as np
 import onnxruntime as ort
@@ -28,7 +29,7 @@ from scoutbot.wic.dataloader import (  # NOQA
 PWD = Path(__file__).absolute().parent
 
 
-DEFAULT_CONFIG = os.getenv('CONFIG', 'mvp').strip().lower()
+DEFAULT_CONFIG = os.getenv('WIC_CONFIG', os.getenv('CONFIG', 'mvp')).strip().lower()
 CONFIGS = {
     'phase1': {
         'name': 'scout.wic.5fbfff26.3.0.onnx',
@@ -70,6 +71,9 @@ def fetch(pull=False, config=DEFAULT_CONFIG):
     Raises:
         AssertionError: If the model cannot be fetched.
     """
+    if config is None:
+        config = DEFAULT_CONFIG
+
     model_name = CONFIGS[config]['name']
     model_path = CONFIGS[config]['path']
     model_hash = CONFIGS[config]['hash']
@@ -111,10 +115,19 @@ def pre(inputs, batch_size=BATCH_SIZE, config=DEFAULT_CONFIG):
             - - list of transformed image data with shape ``(b, c, w, h)``
             - - model configuration
     """
+    if config is None:
+        config = DEFAULT_CONFIG
+
     if len(inputs) == 0:
         return [], config
 
     log.debug(f'Preprocessing {len(inputs)} WIC inputs in batches of {batch_size}')
+
+    # @TODO: Non-determinism and ONNX Runtime prediction failure on macOS
+    #        when using MVP WIC model and a batch size greater than 1
+    if config in ['mvp'] and platform in ['darwin']:
+        log.debug(f'Overriding default WIC batch size of {len(inputs)} with 1 on macOS')
+        batch_size = 1
 
     transform = _init_transforms()
     dataset = ImageFilePathList(inputs, transform=transform)
@@ -145,6 +158,8 @@ def predict(gen):
     ort_sessions = {}
 
     for chunk, config in tqdm.tqdm(gen, disable=QUIET):
+        if config is None:
+            config = DEFAULT_CONFIG
 
         ort_session = ort_sessions.get(config)
         if ort_session is None:
@@ -189,6 +204,9 @@ def post(gen):
 
     outputs = []
     for preds, config in gen:
+        if config is None:
+            config = DEFAULT_CONFIG
+
         classes = CONFIGS[config]['classes']
         for pred in preds:
             output = dict(zip(classes, pred.tolist()))

@@ -27,3 +27,63 @@ cache folder:
          SHA256 checksum: ``3ff3a192803e53758af5e112526ba9622f1dedc55e2fa88850db6f32af160f32``
       - LOC: ``https://wildbookiarepository.azureedge.net/models/scout.loc.mvp.0.onnx`` (194M)
          SHA256 checksum: ``f5bd22fbacc91ba4cf5abaef5197d1645ae5bc4e63e88839e6848c48b3710c58``
+
+Supported Objects of Interest
+-----------------------------
+
+The ONNX models are pre-configured to support a specific batch size and will predict specific species in
+the final detection results.  The input sizes are defined explicitly when they cannot be changed, but the
+``WIC`` model's inputs can be balanced using the environment variable ``WIC_BATCH_SIZE``.  The outputs of
+the pipeline is a collection of bounding boxes, confidence values, and class labels.  Some of the labels
+are not clean and are mapped, for convience, when the final detection labels are created.  Below are the
+supported species for each model:
+
+   - Phase 1: ``phase1``
+      - `elephant_savanna`
+      - - mapped to: `elephant`
+
+   - MVP: ``mvp``
+      - `buffalo`
+      - `camel`
+      - `canoe`
+      - `car`
+      - `cow`
+      - `crocodile`
+      - `dead_animalwhite_bones`
+      - - mapped to: `white_bones`
+      - `deadbones`
+      - - mapped to: `white_bones`
+      - `eland`
+      - `elecarcass_old`
+      - - mapped to: `white_bones`
+      - `elephant`
+      - `gazelle_gr`
+      - - mapped to: `gazelle_grants`
+      - `gazelle_grants`
+      - `gazelle_th`
+      - - mapped to: `gazelle_thomsons`
+      - `gazelle_thomsons`
+      - `gerenuk`
+      - `giant_forest_hog`
+      - `giraffe`
+      - `goat`
+      - `hartebeest`
+      - `hippo`
+      - `impala`
+      - `kob`
+      - `kudu`
+      - `motorcycle`
+      - `oribi`
+      - `oryx`
+      - `ostrich`
+      - `roof_grass`
+      - `roof_mabati`
+      - `sheep`
+      - `test`
+      - `topi`
+      - `vehicle`
+      - `warthog`
+      - `waterbuck`
+      - `white_bones`
+      - `wildebeest`
+      - `zebra`

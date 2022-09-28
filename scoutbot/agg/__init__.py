@@ -15,7 +15,7 @@ from scoutbot import log
 
 MARGIN = 32.0
 
-DEFAULT_CONFIG = os.getenv('CONFIG', 'mvp').strip().lower()
+DEFAULT_CONFIG = os.getenv('AGG_CONFIG', os.getenv('CONFIG', 'mvp')).strip().lower()
 CONFIGS = {
     'phase1': {
         'thresh': 0.4,
@@ -214,6 +214,8 @@ def compute(
 
     assert len(tile_grids) == len(loc_outputs)
 
+    if config is None:
+        config = DEFAULT_CONFIG
     if agg_thresh is None:
         agg_thresh = CONFIGS[config]['thresh']
     if nms_thresh is None:

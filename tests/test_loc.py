@@ -69,7 +69,7 @@ def test_loc_onnx_pipeline_phase1():
     # fmt: off
     targets = [
         {
-            'l': 'elephant_savanna',
+            'l': 'elephant',
             'c':   0.77065581,
             'x': 206.00893930,
             'y': 189.09138371,
@@ -77,7 +77,7 @@ def test_loc_onnx_pipeline_phase1():
             'h':  66.46106896,
         },
         {
-            'l': 'elephant_savanna',
+            'l': 'elephant',
             'c':   0.61152166,
             'x': 216.61065204,
             'y': 193.30525090,
@@ -85,7 +85,7 @@ def test_loc_onnx_pipeline_phase1():
             'h':  62.44728440,
         },
         {
-            'l': 'elephant_savanna',
+            'l': 'elephant',
             'c':   0.50862342,
             'x':  51.61210749,
             'y': 235.37819260,
@@ -93,7 +93,7 @@ def test_loc_onnx_pipeline_phase1():
             'h':  17.41258826,
         },
         {
-            'l': 'elephant_savanna',
+            'l': 'elephant',
             'c':   0.44841822,
             'x':  57.47630427,
             'y': 236.92587515,
@@ -101,7 +101,7 @@ def test_loc_onnx_pipeline_phase1():
             'h':  16.03246718,
         },
         {
-            'l': 'elephant_savanna',
+            'l': 'elephant',
             'c':   0.44012001,
             'x':  37.07233605,
             'y': 230.39122596,
@@ -109,7 +109,7 @@ def test_loc_onnx_pipeline_phase1():
             'h':  24.81017362,
         },
         # {
-        #     'l': 'elephant_savanna',
+        #     'l': 'elephant',
         #     'c':   0.38498798,
         #     'x':  56.43274395,
         #     'y': 232.00978440,
@@ -117,7 +117,7 @@ def test_loc_onnx_pipeline_phase1():
         #     'h':  22.50272075,
         # },
         # {
-        #     'l': 'elephant_savanna',
+        #     'l': 'elephant',
         #     'c':   0.37786528,
         #     'x': 202.67217548,
         #     'y': 178.77696814,

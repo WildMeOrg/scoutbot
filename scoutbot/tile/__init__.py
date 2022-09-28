@@ -2,6 +2,7 @@
 '''
 
 '''
+import os
 from os.path import abspath, exists, join, split, splitext
 
 import cv2
@@ -17,7 +18,10 @@ TILE_OFFSET = 0
 TILE_BORDERS = True
 
 
-def compute(img_filepath, grid1=True, grid2=True, ext=None, **kwargs):
+FAST = os.getenv('FAST', None) is not None
+
+
+def compute(img_filepath, grid1=True, grid2=not FAST, ext=None, **kwargs):
     """
     Compute the tiles for a given input image and saves them to disk.
 
@@ -28,7 +32,8 @@ def compute(img_filepath, grid1=True, grid2=True, ext=None, **kwargs):
         grid1 (bool, optional): If :obj:`True`, create a dense grid of tiles on the image.
             Defaults to :obj:`True`.
         grid2 (bool, optional): If :obj:`True`, create a secondary dense grid of tiles
-            on the image with a 50% offset.  Defaults to :obj:`False`.
+            on the image with a 50% offset.  Defaults to :obj:`False`.  Can be disabled by
+            setting the environment variable ``FAST=1``.
         ext (str, optional): The file extension of the resulting tile files.  If this value is
             not specified, it will use the same extension as `img_filepath`.  Passed as input
             to :meth:`scoutbot.tile.tile_filepath`.  Defaults to :obj:`None`.

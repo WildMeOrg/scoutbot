@@ -62,7 +62,7 @@ QUIET = not utils.VERBOSE
 
 from scoutbot import agg, loc, tile, wic  # NOQA
 
-VERSION = '0.1.16'
+VERSION = '0.1.17'
 version = VERSION
 __version__ = VERSION
 
@@ -148,6 +148,8 @@ def pipeline(
 
     # Threshold for WIC
     wic_ = max(wic_output.get('positive') for wic_output in wic_outputs)
+    wic_ = round(wic_, 4)
+
     flags = [wic_output.get('positive') >= wic_thresh for wic_output in wic_outputs]
     loc_tile_grids = ut.compress(tile_grids, flags)
     loc_tile_filepaths = ut.compress(tile_filepaths, flags)
@@ -298,6 +300,7 @@ def batch(
     for filepath in filepaths:
         data = batch[filepath]
         wic_ = wic_dict.get(filepath, None)
+        wic_ = round(wic_, 4)
 
         img_shape = data['shape']
         loc_tile_grids = data['loc']['grids']
@@ -326,7 +329,7 @@ def batch(
 
 def example():
     """
-    Run the pipeline on an example image with the Phase 1 models
+    Run the pipeline on an example image with the default configuration
     """
     TEST_IMAGE = 'scout.example.jpg'
     TEST_IMAGE_HASH = (

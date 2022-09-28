@@ -282,7 +282,7 @@ def batch(
 @click.command('example')
 def example():
     """
-    Run a test of the pipeline on an example image with the Phase 1 models
+    Run a test of the pipeline on an example image with the default configuration.
     """
     scoutbot.example()
 

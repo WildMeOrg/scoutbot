@@ -37,7 +37,7 @@ INPUT_SIZE = (416, 416)
 INPUT_SIZE_H, INPUT_SIZE_W = INPUT_SIZE
 NETWORK_SIZE = (INPUT_SIZE_H, INPUT_SIZE_W, 3)
 
-DEFAULT_CONFIG = os.getenv('CONFIG', 'mvp').strip().lower()
+DEFAULT_CONFIG = os.getenv('LOC_CONFIG', os.getenv('CONFIG', 'mvp')).strip().lower()
 CONFIGS = {
     'phase1': {
         'batch': 16,
@@ -137,6 +137,9 @@ def fetch(pull=False, config=DEFAULT_CONFIG):
     Raises:
         AssertionError: If the model cannot be fetched.
     """
+    if config is None:
+        config = DEFAULT_CONFIG
+
     model_name = CONFIGS[config]['name']
     model_path = CONFIGS[config]['path']
     model_hash = CONFIGS[config]['hash']
@@ -178,6 +181,9 @@ def pre(inputs, config=DEFAULT_CONFIG):
             - - trim index
             - - model configuration
     """
+    if config is None:
+        config = DEFAULT_CONFIG
+
     if len(inputs) == 0:
         return [], config
 
@@ -229,6 +235,9 @@ def predict(gen):
     ort_sessions = {}
 
     for chunk, sizes, trim, config in tqdm.tqdm(gen, disable=QUIET):
+        if config is None:
+            config = DEFAULT_CONFIG
+
         assert len(chunk) == len(sizes)
 
         if len(chunk) == 0:
@@ -308,6 +317,9 @@ def post(gen, loc_thresh=None, nms_thresh=None):
         if len(preds) == 0:
             continue
 
+        if config is None:
+            config = DEFAULT_CONFIG
+
         anchors = CONFIGS[config]['anchors']
         classes = CONFIGS[config]['classes']
         if loc_thresh is None:
@@ -325,18 +337,14 @@ def post(gen, loc_thresh=None, nms_thresh=None):
 
         preds = postprocess(torch.tensor(preds))
 
-        if config in ['phase1']:
-            class_map = {}
-        elif config in [None, 'mvp']:
-            class_map = {
-                'dead_animalwhite_bones': 'white_bones',
-                'deadbones': 'white_bones',
-                'elecarcass_old': 'white_bones',
-                'gazelle_gr': 'gazelle_grants',
-                'gazelle_th': 'gazelle_thomsons',
-            }
-        else:
-            raise ValueError()
+        class_map = {
+            'elephant_savanna': 'elephant',
+            'dead_animalwhite_bones': 'white_bones',
+            'deadbones': 'white_bones',
+            'elecarcass_old': 'white_bones',
+            'gazelle_gr': 'gazelle_grants',
+            'gazelle_th': 'gazelle_thomsons',
+        }
 
         for pred, size in zip(preds, sizes):
             output = ReverseLetterbox.apply([pred], INPUT_SIZE, size)
