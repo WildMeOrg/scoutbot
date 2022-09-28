@@ -5,7 +5,7 @@ Changelog
 Version 0.1.17
 --------------
 
-- Added detection label mapping for the ``phase1`` output to rename ``elephant_savanna`` to ``elephant``
+- **[BREAKING CHANGE]** Added detection label mapping for the ``phase1`` output to rename ``elephant_savanna`` to ``elephant``
   to be consistent with the ``mvp`` output labels.
 - Added rounding to the WIC predicted confidence to 4 decimal points in the print and JSON outputs.
 - Added to the documentation the list of supported class labels for each model configuration.
