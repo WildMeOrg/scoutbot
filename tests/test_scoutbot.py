@@ -95,11 +95,15 @@ def test_pipeline_mvp():
     for output, target in zip(detects, targets):
         for key in target.keys():
             if key == 'l':
-                assert output.get(key) == target.get(key)
+                assert output.get(key) == target.get(key), f'{output}, {target}, {key}'
             elif key == 'c':
-                assert abs(output.get(key) - target.get(key)) < 1e-2
+                assert (
+                    abs(output.get(key) - target.get(key)) < 1e-2
+                ), f'{output}, {target}, {key}'
             else:
-                assert abs(output.get(key) - target.get(key)) < 3
+                assert (
+                    abs(output.get(key) - target.get(key)) < 3
+                ), f'{output}, {target}, {key}'
 
 
 def test_batch_mvp():
