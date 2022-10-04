@@ -18,12 +18,12 @@ MARGIN = 32.0
 DEFAULT_CONFIG = os.getenv('AGG_CONFIG', os.getenv('CONFIG', 'mvp')).strip().lower()
 CONFIGS = {
     'phase1': {
-        'thresh': 0.4,
-        'nms': 0.2,
+        'thresh': 0.5077,
+        'nms': 0.8,
     },
     'mvp': {
-        'thresh': 0.4,
-        'nms': 0.2,
+        'thresh': 0.0,  # Disabled: pending validation
+        'nms': 0.8,
     },
 }
 CONFIGS[None] = CONFIGS[DEFAULT_CONFIG]
@@ -249,7 +249,7 @@ def compute(
             )
             confs = np.array([detect['c'] for detect in detects])
 
-            keeps = py_cpu_nms(coords, confs, nms_thresh)
+            keeps = py_cpu_nms(coords, confs, 1.0 - nms_thresh)
             final = ut.take(detects, keeps)
             final.sort(key=lambda val: val['c'], reverse=True)
 

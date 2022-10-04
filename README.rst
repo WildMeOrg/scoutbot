@@ -34,13 +34,13 @@ To then add GPU acceleration, you need to replace `onnxruntime` with `onnxruntim
 How to Run
 ----------
 
-You can run the tile-base Gradio demo with:
+You can run the tile-based Gradio demo with:
 
 .. code-block:: console
 
    (.venv) $ python app.py
 
-or, you can run the image-base Gradio demo with:
+or, you can run the image-based Gradio demo with:
 
 .. code-block:: console
 

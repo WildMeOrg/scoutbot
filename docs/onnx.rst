@@ -1,3 +1,5 @@
+.. include:: colors.rst
+
 CDN Model Download (ONNX)
 -------------------------
 
@@ -39,15 +41,15 @@ are not clean and are mapped, for convience, when the final detection labels are
 supported species for each model:
 
    - Phase 1: ``phase1``
-      - `elephant_savanna`
+      - :green:`elephant_savanna`
       - - mapped to: `elephant`
 
    - MVP: ``mvp``
-      - `buffalo`
+      - :green:`buffalo`
       - `camel`
       - `canoe`
       - `car`
-      - `cow`
+      - :green:`cow`
       - `crocodile`
       - `dead_animalwhite_bones`
       - - mapped to: `white_bones`
@@ -56,7 +58,7 @@ supported species for each model:
       - `eland`
       - `elecarcass_old`
       - - mapped to: `white_bones`
-      - `elephant`
+      - :green:`elephant`
       - `gazelle_gr`
       - - mapped to: `gazelle_grants`
       - `gazelle_grants`
@@ -65,25 +67,27 @@ supported species for each model:
       - `gazelle_thomsons`
       - `gerenuk`
       - `giant_forest_hog`
-      - `giraffe`
+      - :green:`giraffe`
       - `goat`
-      - `hartebeest`
-      - `hippo`
+      - :green:`hartebeest`
+      - :green:`hippo`
       - `impala`
-      - `kob`
+      - :green:`kob`
       - `kudu`
       - `motorcycle`
       - `oribi`
-      - `oryx`
+      - :green:`oryx`
       - `ostrich`
       - `roof_grass`
       - `roof_mabati`
       - `sheep`
       - `test`
-      - `topi`
+      - :green:`topi`
       - `vehicle`
-      - `warthog`
-      - `waterbuck`
+      - :green:`warthog`
+      - :green:`waterbuck`
       - `white_bones`
       - `wildebeest`
-      - `zebra`
+      - :green:`zebra`
+
+All species above that are highlighted in green have an Average Precision (AP) of at least 50%.  The other species are supported in a preliminary sense and should not be heavily relied on.

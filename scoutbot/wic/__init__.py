@@ -36,7 +36,7 @@ CONFIGS = {
         'path': join(PWD, 'models', 'onnx', 'scout.wic.5fbfff26.3.0.onnx'),
         'hash': 'cbc7f381fa58504e03b6510245b6b2742d63049429337465d95663a6468df4c1',
         'classes': ['negative', 'positive'],
-        'thresh': 0.2,
+        'thresh': 0.4,
     },
     'mvp': {
         'name': 'scout.wic.mvp.2.0.onnx',

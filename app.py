@@ -7,13 +7,26 @@ import numpy as np
 
 from scoutbot import loc, wic
 
+PHASE1 = [
+    'Phase 1',
+    int(wic.CONFIGS['phase1']['thresh'] * 100),
+    int(loc.CONFIGS['phase1']['thresh'] * 100),
+    int(loc.CONFIGS['phase1']['nms'] * 100),
+]
+MVP = [
+    'MVP',
+    int(wic.CONFIGS['mvp']['thresh'] * 100),
+    int(loc.CONFIGS['mvp']['thresh'] * 100),
+    int(loc.CONFIGS['mvp']['nms'] * 100),
+]
+
 
 def predict(filepath, config, wic_thresh, loc_thresh, nms_thresh):
     start = time.time()
 
-    if config == 'MVP':
+    if config == MVP[0]:
         config = 'mvp'
-    elif config == 'Phase 1':
+    elif config == PHASE1[0]:
         config = 'phase1'
     else:
         raise ValueError()
@@ -21,8 +34,6 @@ def predict(filepath, config, wic_thresh, loc_thresh, nms_thresh):
     wic_thresh /= 100.0
     loc_thresh /= 100.0
     nms_thresh /= 100.0
-
-    nms_thresh = 1.0 - nms_thresh
 
     # Load data
     img = cv2.imread(filepath)
@@ -80,12 +91,12 @@ interface = gr.Interface(
         gr.Radio(
             label='Model Configuration',
             type='value',
-            choices=['Phase 1', 'MVP'],
-            value='MVP',
+            choices=[PHASE1[0], MVP[0]],
+            value=MVP[0],
         ),
-        gr.Slider(label='WIC Confidence Threshold', value=7),
-        gr.Slider(label='Localizer Confidence Threshold', value=14),
-        gr.Slider(label='Localizer NMS Threshold', value=80),
+        gr.Slider(label='WIC Confidence Threshold', value=MVP[1]),
+        gr.Slider(label='Localizer Confidence Threshold', value=MVP[2]),
+        gr.Slider(label='Localizer NMS Threshold', value=MVP[3]),
     ],
     outputs=[
         gr.Image(type='numpy'),
@@ -94,16 +105,28 @@ interface = gr.Interface(
         gr.Textbox(label='Predicted Localizer Detections', interactive=False),
     ],
     examples=[
-        ['examples/07a4b8db-f31c-261d-4580-e9402768fd45.true.jpg', 'MVP', 7, 14, 80],
-        ['examples/15e815d9-5aad-fa53-d1ed-33429020e15e.true.jpg', 'MVP', 7, 14, 80],
-        ['examples/1bb79811-3149-7a60-2d88-613dc3eeb261.true.jpg', 'MVP', 7, 14, 80],
-        ['examples/1e8372e4-357d-26e6-d7fd-0e0ae402463a.true.jpg', 'MVP', 7, 14, 80],
-        ['examples/201bc65e-d64e-80d3-2610-5865a22d04b4.false.jpg', 'MVP', 7, 14, 80],
-        ['examples/3affd8b6-9722-f2d5-9171-639615b4c38f.true.jpg', 'MVP', 7, 14, 80],
-        ['examples/4aedb818-f2f4-e462-8b75-5c8e34a01a59.false.jpg', 'MVP', 7, 14, 80],
-        ['examples/474bc2b6-dc51-c1b5-4612-efe810bbe091.true.jpg', 'MVP', 7, 14, 80],
-        ['examples/c3014107-3464-60b5-e04a-e4bfafdf8809.false.jpg', 'MVP', 7, 14, 80],
-        ['examples/f835ce33-292a-9116-794e-f8859b5956ec.true.jpg', 'MVP', 7, 14, 80],
+        # Phase 1
+        ['examples/07a4b8db-f31c-261d-4580-e9402768fd45.true.jpg'] + PHASE1,
+        ['examples/15e815d9-5aad-fa53-d1ed-33429020e15e.true.jpg'] + PHASE1,
+        ['examples/1bb79811-3149-7a60-2d88-613dc3eeb261.true.jpg'] + PHASE1,
+        ['examples/1e8372e4-357d-26e6-d7fd-0e0ae402463a.true.jpg'] + PHASE1,
+        ['examples/201bc65e-d64e-80d3-2610-5865a22d04b4.false.jpg'] + PHASE1,
+        ['examples/3affd8b6-9722-f2d5-9171-639615b4c38f.true.jpg'] + PHASE1,
+        ['examples/4aedb818-f2f4-e462-8b75-5c8e34a01a59.false.jpg'] + PHASE1,
+        ['examples/474bc2b6-dc51-c1b5-4612-efe810bbe091.true.jpg'] + PHASE1,
+        ['examples/c3014107-3464-60b5-e04a-e4bfafdf8809.false.jpg'] + PHASE1,
+        ['examples/f835ce33-292a-9116-794e-f8859b5956ec.true.jpg'] + PHASE1,
+        # MVP
+        ['examples/07a4b8db-f31c-261d-4580-e9402768fd45.true.jpg'] + MVP,
+        ['examples/15e815d9-5aad-fa53-d1ed-33429020e15e.true.jpg'] + MVP,
+        ['examples/1bb79811-3149-7a60-2d88-613dc3eeb261.true.jpg'] + MVP,
+        ['examples/1e8372e4-357d-26e6-d7fd-0e0ae402463a.true.jpg'] + MVP,
+        ['examples/201bc65e-d64e-80d3-2610-5865a22d04b4.false.jpg'] + MVP,
+        ['examples/3affd8b6-9722-f2d5-9171-639615b4c38f.true.jpg'] + MVP,
+        ['examples/4aedb818-f2f4-e462-8b75-5c8e34a01a59.false.jpg'] + MVP,
+        ['examples/474bc2b6-dc51-c1b5-4612-efe810bbe091.true.jpg'] + MVP,
+        ['examples/c3014107-3464-60b5-e04a-e4bfafdf8809.false.jpg'] + MVP,
+        ['examples/f835ce33-292a-9116-794e-f8859b5956ec.true.jpg'] + MVP,
     ],
     cache_examples=True,
     allow_flagging='never',

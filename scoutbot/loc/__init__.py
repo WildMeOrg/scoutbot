@@ -45,8 +45,8 @@ CONFIGS = {
         'path': join(PWD, 'models', 'onnx', 'scout.loc.5fbfff26.0.onnx'),
         'hash': '85a9378311d42b5143f74570136f32f50bf97c548135921b178b46ba7612b216',
         'classes': ['elephant_savanna'],
-        'thresh': 0.4,
-        'nms': 0.8,
+        'thresh': 0.0,
+        'nms': 0.4,
         'anchors': [
             (1.3221, 1.73145),
             (3.19275, 4.00944),
@@ -101,8 +101,8 @@ CONFIGS = {
             'wildebeest',
             'zebra',
         ],
-        'thresh': 0.14,
-        'nms': 0.8,
+        'thresh': 0.38,
+        'nms': 0.6,
         'anchors': [
             (1.3221, 1.73145),
             (3.19275, 4.00944),

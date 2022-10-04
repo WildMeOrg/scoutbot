@@ -141,6 +141,7 @@ def pipeline(
         }
     }
 
+    log.debug('Outputting results...')
     if output:
         with open(output, 'w') as outfile:
             json.dump(data, outfile)
@@ -268,10 +269,11 @@ def batch(
     data = {}
     for filepath, wic_, detects in results:
         data[filepath] = {
-            'wic': wic,
+            'wic': wic_,
             'loc': detects,
         }
 
+    log.debug('Outputting results...')
     if output:
         with open(output, 'w') as outfile:
             json.dump(data, outfile)
