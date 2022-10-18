@@ -67,8 +67,8 @@ jobs:
     env:
       WIC_BATCH_SIZE: 16
 
-    # upload to PyPI on every tag starting with 'v'
-    if: github.event_name == 'push'  # && startsWith(github.event.ref, 'refs/tags/v')
+    # test wheel
+    if: github.event_name == 'push'
     steps:
       - uses: actions/setup-python@v2
         name: Install Python
@@ -95,19 +95,19 @@ jobs:
           scoutbot fetch
           scoutbot example
 
-  # upload_pypi:
-  #   needs: [test_wheel]
-  #   runs-on: ubuntu-latest
-  #   # upload to PyPI on every tag starting with 'v'
-  #   if: github.event_name == 'push'  # && startsWith(github.event.ref, 'refs/tags/v')
-  #   steps:
-  #     - uses: actions/download-artifact@v2
-  #       with:
-  #         name: artifact
-  #         path: dist
+  upload_pypi:
+    needs: [test_wheel]
+    runs-on: ubuntu-latest
+    # upload to PyPI on every tag starting with 'v'
+    if: github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags/v')
+    steps:
+      - uses: actions/download-artifact@v2
+        with:
+          name: artifact
+          path: dist
 
-  #     - uses: pypa/gh-action-pypi-publish@release/v1
-  #       with:
-  #         user: __token__
-  #         password: ${{ secrets.PYPI_PASSWORD }}
-  #         # To test: repository_url: https://test.pypi.org/legacy/
+      - uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          user: __token__
+          password: ${{ secrets.PYPI_PASSWORD }}
+          # To test: repository_url: https://test.pypi.org/legacy/

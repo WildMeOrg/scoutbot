@@ -54,7 +54,8 @@ jobs:
       - name: Tagged Docker Hub
         if: ${{ github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags/v') }}
         run: |
-          echo "IMAGE_TAG=latest" >> $GITHUB_ENV
+          VERSION=$(echo ${GITHUB_REF} | sed 's#.*/v##')
+          echo "IMAGE_TAG=${VERSION}" >> $GITHUB_ENV
 
       # Push bleeding-edge image (main tag) to registries
       - name: Bleeding Edge Docker Hub
@@ -73,6 +74,15 @@ jobs:
         run: |
           docker buildx build \
               -t wildme/scoutbot:${{ env.IMAGE_TAG }} \
+              --platform linux/amd64 \
+              --push \
+              .
+
+      # Also push latest image
+      - name: Build Codex
+        if: ${{ github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags/v') }}
+        run: |
+          docker buildx build \
               -t wildme/scoutbot:latest \
               --platform linux/amd64 \
               --push \

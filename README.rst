@@ -12,46 +12,43 @@ Wild Me ScoutBot
 How to Install
 --------------
 
-.. code-block:: console
+.. code-block:: bash
 
-    (.venv) $ pip install scoutbot
+    pip install scoutbot
 
 or, from source:
 
-.. code-block:: console
+.. code-block:: bash
 
    git clone https://github.com/WildMeOrg/scoutbot
    cd scoutbot
-   (.venv) $ pip install -e .
+   pip install -e .
 
 To then add GPU acceleration, you need to replace `onnxruntime` with `onnxruntime-gpu`:
 
-.. code-block:: console
+.. code-block:: bash
 
-   (.venv) $ pip uninstall -y onnxruntime
-   (.venv) $ pip install onnxruntime-gpu
+   pip uninstall -y onnxruntime
+   pip install onnxruntime-gpu
 
 How to Run
 ----------
 
 You can run the tile-based Gradio demo with:
 
-.. code-block:: console
+.. code-block:: bash
 
-   (.venv) $ python app.py
+   python app.py
 
 or, you can run the image-based Gradio demo with:
 
-.. code-block:: console
+.. code-block:: bash
 
-   (.venv) $ python app2.py
-
-Docker
-------
+   python app2.py
 
 To run with Docker:
 
-.. code-block:: console
+.. code-block:: bash
 
     docker run \
        -it \
@@ -90,9 +87,17 @@ To run with Docker Compose:
 
 and run ``docker compose up -d``.
 
-The application can also be built into a Docker image and is hosted on Docker Hub as ``wildme/scoutbot:latest``.
+How to Build and Deploy
+-----------------------
 
-.. code-block:: console
+Docker Hub
+==========
+
+The application can also be built into a Docker image and is hosted on Docker Hub as ``wildme/scoutbot:latest``.  Any time the ``main`` branch is updated or a tagged release is made (see the PyPI instructions below), an automated GitHub CD action will build and deploy the newest image to Docker Hub automatically.
+
+To do this manually, use the code below:
+
+.. code-block:: bash
 
     docker login
 
@@ -106,21 +111,53 @@ The application can also be built into a Docker image and is hosted on Docker Hu
         --push \
         .
 
+PyPI
+====
+
+To upload the latest ScoutBot version to the Python Package Index (PyPI), follow the steps below:
+
+#. Edit ``scoutbot/__init__.py:65`` and set ``VERSION`` to the desired version
+
+    .. code-block:: python
+
+        VERSION = 'X.Y.Z'
+
+
+#. Push any changes and version update to the ``main`` branch on GitHub and wait for CI tests to pass
+
+    .. code-block:: bash
+
+        git pull origin main
+        git commit -am "Release for Version X.Y.Z"
+        git push origin main
+
+
+#. Tag the ``main`` branch as a new release using the `SemVer pattern <https://semver.org/>`_ (e.g., ``vX.Y.Z``)
+
+    .. code-block:: bash
+
+        git pull origin main
+        git tag vX.Y.Z
+        git push origin vX.Y.Z
+
+
+#. Wait for the automated GitHub CD actions to build and push to `PyPI <https://pypi.org/project/scoutbot/>`_ and `Docker Hub <https://hub.docker.com/r/wildme/scoutbot>`_.
+
 Tests and Coverage
 ------------------
 
 You can run the automated tests in the ``tests/`` folder by running:
 
-.. code-block:: console
+.. code-block:: bash
 
-    (.venv) $ pip install -r requirements.optional.txt
-    (.venv) $ pytest
+    pip install -r requirements.optional.txt
+    pytest
 
 You may also get a coverage percentage by running:
 
-.. code-block:: console
+.. code-block:: bash
 
-    (.venv) $ coverage html
+    coverage html
 
 and open the `coverage/html/index.html` file in your browser.
 
@@ -129,19 +166,19 @@ Building Documentation
 
 There is Sphinx documentation in the ``docs/`` folder, which can be built by running:
 
-.. code-block:: console
+.. code-block:: bash
 
-    (.venv) $ cd docs/
-    (.venv) $ pip install -r requirements.optional.txt
-    (.venv) $ sphinx-build -M html . build/
+    cd docs/
+    pip install -r requirements.optional.txt
+    sphinx-build -M html . build/
 
 Logging
 -------
 
 The script uses Python's built-in logging functionality called ``logging``.  All print functions are replaced with ``log.info()``, which sends the output to two places:
 
-    - 1. the terminal window, and
-    - 2. the file `scoutbot.log`
+#. the terminal window, and
+#. the file `scoutbot.log`
 
 Code Formatting
 ---------------
@@ -151,10 +188,10 @@ on any code you write.  See `pre-commit.com <https://pre-commit.com/>`_ for more
 
 Reference `pre-commit's installation instructions <https://pre-commit.com/#install>`_ for software installation on your OS/platform. After you have the software installed, run ``pre-commit install`` on the command line. Now every time you commit to this project's code base the linter procedures will automatically run over the changed files.  To run pre-commit on files preemtively from the command line use:
 
-.. code-block:: console
+.. code-block:: bash
 
-    (.venv) $ pip install -r requirements.optional.txt
-    (.venv) $ pre-commit run --all-files
+    pip install -r requirements.optional.txt
+    pre-commit run --all-files
 
 The code base has been formatted by `Brunette <https://pypi.org/project/brunette/>`_, which is a fork and more configurable version of `Black <https://black.readthedocs.io/en/stable/>`_.  Furthermore, try to conform to ``PEP8``.  You should set up your preferred editor to use ``flake8`` as its Python linter, but pre-commit will ensure compliance before a git commit is completed.  This will use the ``flake8`` configuration within ``setup.cfg``, which ignores several errors and stylistic considerations.  See the ``setup.cfg`` file for a full and accurate listing of stylistic codes to ignore.
 
