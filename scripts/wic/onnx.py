@@ -94,7 +94,9 @@ assert sum(map(exists, filepaths)) == len(filepaths)
 
 INDEX = 0
 
-weights_path = f'/cache/wbia/classifier2.scout.5fbfff26.3/classifier2.vulcan.5fbfff26.3/classifier.{INDEX}.weights'
+# weights_path = f'/cache/wbia/classifier2.scout.5fbfff26.3/classifier2.vulcan.5fbfff26.3/classifier.{INDEX}.weights'
+weights_path = f'/cache/wbia/classifier2.scout.mvp.2/classifier.{INDEX}.weights'
+
 
 assert exists(weights_path)
 weights = torch.load(weights_path, map_location='cpu')
@@ -102,9 +104,13 @@ state = weights['state']
 classes = weights['classes']
 
 # Initialize the model for this run
-model = torchvision.models.densenet201()
-num_ftrs = model.classifier.in_features
-model.classifier = nn.Linear(num_ftrs, len(classes))
+# model = torchvision.models.densenet201()
+# num_ftrs = model.classifier.in_features
+# model.classifier = nn.Linear(num_ftrs, len(classes))
+
+model = torchvision.models.resnet50()
+num_ftrs = model.fc.in_features
+model.fc = nn.Linear(num_ftrs, len(classes))
 
 # Convert any weights to non-parallel version
 new_state = OrderedDict()
@@ -116,7 +122,8 @@ for k, v in state.items():
 model.load_state_dict(new_state)
 
 # Add softmax
-model.classifier = nn.Sequential(model.classifier, nn.LogSoftmax(), nn.Softmax())
+# model.classifier = nn.Sequential(model.classifier, nn.LogSoftmax(), nn.Softmax())
+model.fc = nn.Sequential(model.fc, nn.LogSoftmax(), nn.Softmax())
 if WITH_GPU:
     model = model.cuda()
 model.eval()
@@ -176,6 +183,7 @@ print(f'TN:        {tn}')
 print(f'FP:        {fp}')
 print(f'FN:        {fn}')
 
+# Phase 1 - INDEX 0
 # Thresh:    0.01
 # Accuracy:  0.895
 # TP:        83
@@ -183,6 +191,7 @@ print(f'FN:        {fn}')
 # FP:        4
 # FN:        17
 
+# Phase 1 - INDEX 1
 # Thresh:    0.06
 # Accuracy:  0.91
 # TP:        85
@@ -190,11 +199,20 @@ print(f'FN:        {fn}')
 # FP:        3
 # FN:        15
 
+# Phase 1 - INDEX 2
 # Thresh:    0.01
 # Accuracy:  0.905
 # TP:        83
 # TN:        98
 # FP:        2
+# FN:        17
+
+# Phase 2 - MVP
+# Thresh:    0.17
+# Accuracy:  0.885
+# TP:        83
+# TN:        94
+# FP:        6
 # FN:        17
 
 #############
@@ -203,7 +221,8 @@ dummy_input = torch.randn(BATCH_SIZE, 3, INPUT_SIZE, INPUT_SIZE, device='cpu')
 input_names = ['input']
 output_names = ['output']
 
-onnx_filename = f'scout.wic.5fbfff26.3.{INDEX}.onnx'
+# onnx_filename = f'scout.wic.5fbfff26.3.{INDEX}.onnx'
+onnx_filename = f'scout.wic.mvp.2.{INDEX}.onnx'
 output = torch.onnx.export(
     model,
     dummy_input,
@@ -277,6 +296,7 @@ print(f'TN:        {tn}')
 print(f'FP:        {fp}')
 print(f'FN:        {fn}')
 
+# Phase 1 - INDEX 0
 # Min:  0.00000000
 # Max:  0.00000143
 # Mean: 0.00000003 +/- 0.00000013
@@ -289,6 +309,7 @@ print(f'FN:        {fn}')
 # FP:        4
 # FN:        17
 
+# Phase 1 - INDEX 1
 # Min:  0.00000000
 # Max:  0.00000113
 # Mean: 0.00000004 +/- 0.00000013
@@ -301,7 +322,7 @@ print(f'FN:        {fn}')
 # FP:        3
 # FN:        15
 
-
+# Phase 1 - INDEX 2
 # Min:  0.00000000
 # Max:  0.00000209
 # Mean: 0.00000004 +/- 0.00000019
@@ -312,4 +333,17 @@ print(f'FN:        {fn}')
 # TP:        83
 # TN:        98
 # FP:        2
+# FN:        17
+
+# Phase 2 - MVP
+# Min:  0.00000000
+# Max:  0.00000215
+# Mean: 0.00000010 +/- 0.00000031
+# Time Pytorch: 6.34 sec.
+# Time ONNX:    1.33 sec.
+# Thresh:    0.17
+# Accuracy:  0.885
+# TP:        83
+# TN:        94
+# FP:        6
 # FN:        17

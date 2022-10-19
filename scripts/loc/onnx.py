@@ -93,10 +93,15 @@ assert sum(orients) == 0
 
 ##########
 
-INDEX = 1
+# INDEX = 1
 
-config_path = f'/cache/lightnet/detect.lightnet.scout.5fbfff26.v{INDEX}.py'
-weights_path = f'/cache/lightnet/detect.lightnet.scout.5fbfff26.v{INDEX}.weights'
+# config_path = f'/cache/lightnet/detect.lightnet.scout.5fbfff26.v{INDEX}.py'
+# weights_path = f'/cache/lightnet/detect.lightnet.scout.5fbfff26.v{INDEX}.weights'
+
+INDEX = 0
+
+config_path = f'/cache/lightnet/detect.lightnet.scout.mvp.{INDEX}.py'
+weights_path = f'/cache/lightnet/detect.lightnet.scout.mvp.{INDEX}.weights'
 conf_thresh = 0.0
 nms_thresh = 0.2
 
@@ -201,6 +206,7 @@ print(f'TN:        {tn}')
 print(f'FP:        {fp}')
 print(f'FN:        {fn}')
 
+# Phase 1 - INDEX 0
 # Thresh:    0.25
 # Accuracy:  0.93
 # TP:        88
@@ -208,12 +214,21 @@ print(f'FN:        {fn}')
 # FP:        2
 # FN:        12
 
+# Phase 1 - INDEX 1
 # Thresh:    0.35
 # Accuracy:  0.925
 # TP:        85
 # TN:        100
 # FP:        0
 # FN:        15
+
+# MVP
+# Thresh:    0.14
+# Accuracy:  0.895
+# TP:        89
+# TN:        90
+# FP:        10
+# FN:        11
 
 #############
 
@@ -222,7 +237,8 @@ input_names = ['input']
 output_names = ['output']
 
 model.onnx = True
-onnx_filename = f'scout.loc.5fbfff26.{INDEX}.onnx'
+# onnx_filename = f'scout.loc.5fbfff26.{INDEX}.onnx'
+onnx_filename = f'scout.loc.mvp.{INDEX}.onnx'
 output = torch.onnx.export(
     model,
     dummy_input,
@@ -339,6 +355,7 @@ print(f'TN:        {tn}')
 print(f'FP:        {fp}')
 print(f'FN:        {fn}')
 
+# Phase 2 - INDEX 0
 # Min:  0.00000000
 # Max:  0.00017841
 # Mean: 0.00000904 +/- 0.00001550
@@ -351,6 +368,7 @@ print(f'FN:        {fn}')
 # FP:        2
 # FN:        12
 
+# Phase 2 - INDEX 1
 # Min:  0.00000000
 # Max:  0.00011268
 # Mean: 0.00000845 +/- 0.00001284
@@ -362,3 +380,16 @@ print(f'FN:        {fn}')
 # TN:        100
 # FP:        0
 # FN:        15
+
+# Phase 2 - MVP
+# Min:  0.00000000
+# Max:  0.00027231
+# Mean: 0.00001667 +/- 0.00002650
+# Time Pytorch: 19.77 sec.
+# Time ONNX:    10.52 sec.
+# Thresh:    0.14
+# Accuracy:  0.895
+# TP:        89
+# TN:        90
+# FP:        10
+# FN:        11

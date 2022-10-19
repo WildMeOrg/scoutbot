@@ -1,0 +1,687 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Wild Me - MWS Phase 2 MVP Report</title>
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <meta content="" name="keywords">
+    <meta content="" name="description">
+    <!-- Template Stylesheet -->
+    <link href="css/style.css" rel="stylesheet">
+    <!-- CSS only -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-iYQeCzEYFbKjA/T2uDLTpkwGzCiq6soy8tYaI1GyVh/UjpbCx/TYkiZhlZB6+fzT" crossorigin="anonymous">
+  </head>
+  <body>
+    <div class="container-xxl bg-white my-3">
+      <nav id="navbar" class="navbar bg-light px-3 mb-3 sticky-top">
+        <div class="container-fluid">
+          <ul class="nav nav-pills">
+            <li class="nav-item">
+              <a class="nav-link" href="#overview">Overview</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="#data">Data</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="#results">Results</a>
+            </li>
+            <li class="nav-item">
+              <a class="nav-link" href="#issues">Issues</a>
+            </li>
+          </ul>
+        </div>
+      </nav>
+      <div data-bs-spy="scroll" data-bs-target="#navbar" data-bs-root-margin="0px 0px -40%" data-bs-smooth-scroll="true" class="bg-light p-3 rounded-2" tabindex="0" id="content">
+        <h2 id="overview">
+        Overview
+        </h2>
+        <img src="img/2cedec44-7a57-2b77-f819-1b36865a53a2.jpg" class="img-fluid img-thumbnail mx-auto d-block">
+        <figcaption class="figure-caption">An image from Murchison Sep. 2015 with 4 Hartebeest bounding boxes: "TEP SURVEY SEP 2015 AIRPHOTOS 30 Sep Left and Right, 1 Oct Left Only/2015-10-01-2-106-0904.JPG"</figcaption>
+        <p>
+          This report gives the preliminary machine learning (ML) results for the MWS Phase 2 project.
+        </p>
+        <p>
+          The initial models for this deliverable are trained on images and ground-truth annotation data provided by Richard Lamprey and his team in Uganda. For the purposes of providing a working MVP, this deliverable focuses on producing a fast, accurate, multi-species ML pipeline that can produce image-level positive/negative scores and bounding boxes around objects of interest.
+        </p>
+        <p>
+          This work is preliminary; this work did not replicate the same level and depth of research from Phase 1. The intuitions and lessons learned from Phase 1 allowed this Phase 2 model training to be more streamlined and for fewer options to be considered when validating the final pipeline. This is a direct benefit from having completed the prior Phase 1 since it allowed the training procedure to be more focused on the features, configurations, and tools that are known to work well to produce a good and wholistic ML model.
+        </p>
+        <p>
+          As such, the preliminary Phase 2 models do not not perform any negative visual clustering prior to training, does not incorporate the (elephant only) training datasets from the Phase 1, does not predict deduplicated sequence estimates or counts or suggest any amount of bias corrections, does not produce pixel-level foreground/background masks, does not provide bounding box cluster assignments, and does not do any subsequent image alignment or overlap estimation. This new ML pipeline is intended to be used on individual images in isolation, which is the intended use case for the MVP deliverable. More advanced ML outputs will require new image and annotation data from the KAZA survey, survey transect metadata, flight position and attitude telemetry, and research time.
+        </p>
+        <p>
+          <a href="https://docs.google.com/document/d/1JYs953_AjVb03VkqHnK1RHVO2ODn6IiofSIS5-n4f8g/edit#heading=h.yv8y3fin0f49" target="_blank">Link to the Phase 1 final report</a>
+        </p>
+        <div class="pagebreak"></div>
+        <h2 id="data">
+        Data
+        </h2>
+        <p>
+          The initial ML training data provided by Richard Lamprey was collected over the course of several years and by flying over several conservation areas.  These areas include the Murchison Falls National Park (<b>MFNP</b>), the Queen Elizabeth National Park (<b>QENP</b>), and the Tsavo East National Park (<b>TENP</b>).  The table below details six datasets that have been provided to Wild Me in order to train a preliminary multi-species ML pipeline.  The annotated and full image datasets were downloaded down from Amazon S3 storage across 11 separate volumes; the CSV annotation files were created with VGG Image Annotator (VIA) and provided to Wild Me via email.
+        </p>
+        <table class="table table-striped table-hover text-end">
+          <thead>
+            <tr>
+              <th scope="col" class="text-start">Location</th>
+              <th scope="col">Date</th>
+              <th scope="col">Images</th>
+              <th scope="col">Annotations</th>
+              <th scope="col">Received</th>
+              <th scope="col">Dataset</th>
+              <th scope="col">Size</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <th scope="row" class="text-start">MFNP</th>
+              <td>Sep. 2015</td>
+              <td>1,204</td>
+              <td>10,177 *</td>
+              <td>11/04/21</td>
+              <td>32,949</td>
+              <td>324 GB</td>
+            </tr>
+            <tr>
+              <th scope="row" class="text-start">MFNP</th>
+              <td>Dec. 2015</td>
+              <td>1,067</td>
+              <td>10,177 <b>*</b></td>
+              <td>11/04/21</td>
+              <td>31,696</td>
+              <td>423 GB</td>
+            </tr>
+            <tr>
+              <th scope="row" class="text-start">MFNP</th>
+              <td>Apr. 2016</td>
+              <td>1,475</td>
+              <td>12,334</td>
+              <td>08/03/22</td>
+              <td>20,749</td>
+              <td>243 GB</td>
+            </tr>
+            <tr>
+              <th scope="row" class="text-start">TENP</th>
+              <td>2017</td>
+              <td>1,130</td>
+              <td>5,496</td>
+              <td>07/22/22</td>
+              <td>115,994</td>
+              <td>700 GB</td>
+            </tr>
+            <tr>
+              <th scope="row" class="text-start">QENP</th>
+              <td>2018</td>
+              <td>1,208</td>
+              <td>7,784</td>
+              <td>02/14/22</td>
+              <td>48,818</td>
+              <td>295 GB</td>
+            </tr>
+            <tr>
+              <th scope="row" class="text-start">MFNP</th>
+              <td>2019</td>
+              <td>2,127</td>
+              <td>16,361</td>
+              <td>02/16/22</td>
+              <td>60,535</td>
+              <td>403 GB</td>
+            </tr>
+            <tr>
+              <th scope="row" class="text-start">All Locations</th>
+              <td></td>
+              <td><b>8,211</b><br/><i>(deduplicated)</i></td>
+              <td><b>59,754</b><br/><i>(deduplicated)</i></td>
+              <td><b>08/03/22</b></td>
+              <td><b>319,148</b><br/><i>(deduplicated)</i></td>
+              <td><b>2.39 TB</b></td>
+            </tr>
+          </tbody>
+        </table>
+        <figcaption class="figure-caption"><b>*</b> The MFNP September and December 2016 datasets were annotated together and delivered as single CSV download, containing a total of 20,355 annotations for both.</figcaption>
+        <p>
+          The data for ML training was provided to Wild Me as a collection of three parts:
+          <ol>
+            <li>The positive images</li>
+            <li>The positive annotations in CSV</li>
+            <li>The full dataset</li>
+          </ol>
+          The full datasets include all of the images that were taken for each survey, including images "on the survey line" (OSL), the end of transect turns, and images taken in transit to the survey area.  In each of the full image datasets all animals have been counted by Richard's team, but only about 50% of the counted animals have been annotated with bounding boxes.  The images that were designated for bounding box annotation were extracted out of their respective full datasets and randomly given to a team of 5 data annotators in Uganda.  After a round of data annotation and review using the VGG Image Annotator tool, the CSV files were extracted for all positive images and provided to Wild Me.  The raw counts of animals for each image in the full dataset was not provided, meaning that the ML cannot directly assume that a random image in the full dataset is a true negative throughout the full image.  To compensate for this, only the images that contained annotations were used for training the initial Phase 2 ML pipeline.
+        </p>
+        <p>
+          This restriction means that the full 2.4 TB of images (319,148 total) provided to Wild Me must be substantially reduced for the ML training to only the images with annotations.  The need to have reliable negative ground-truth provides that only 8,211 images are to be used for training.  This filtering may seem extreme, but the incidence rate within an image is still extremely low and the low pixel density of annotations within an image means that a large amount of negative regions may be sampled from each positive example.  There are 59,754 annotations for these 8,211 images, meaning an average of only 7.3 boxes per image.  While we would prefer to include more completely negative images in the ML dataset for training, the practical tradeoffs between training time and accuracy suggest that the benefit would be marginal at best.  This assumption can be reasonably met because the animals are seen uniformly and incidentally when captured from an aerial sensor, meaning that the underlying ML sighting distributions are strongly biased towards areas where animals more commonly aggregate.
+        </p>
+        <div class="pagebreak"></div>
+        <p>
+          Below is a histogram of all 38 annotation labels and their respective number of bounding boxes within the combined and deduplicated dataset:
+        </p>
+        <div class="container">
+          <div class="row">
+            <div class="col col-12 col-sm-12 col-md-12 col-lg-4 col-xl-4">
+              <table class="table table-striped table-hover">
+                <thead>
+                  <tr>
+                    <th scope="col">Species</th>
+                    <th scope="col" class="text-end">Total</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <th scope="row">Buffalo</th>
+                    <td class="text-end">8,773</td>
+                  </tr>
+                  <tr>
+                    <th scope="row">Camel</th>
+                    <td class="text-end"><b class="text-danger">92</b></td>
+                  </tr>
+                  <tr>
+                    <th scope="row">Canoe</th>
+                    <td class="text-end">332</td>
+                  </tr>
+                  <tr>
+                    <th scope="row">Car</th>
+                    <td class="text-end">495</td>
+                  </tr>
+                  <tr>
+                    <th scope="row">Cow</th>
+                    <td class="text-end">1,889</td>
+                  </tr>
+                  <tr>
+                    <th scope="row">Crocodile</th>
+                    <td class="text-end"><b class="text-danger">61</b></td>
+                  </tr>
+                  <tr>
+                    <th scope="row">Dead animal/White bones</th>
+                    <td class="text-end"><b class="text-danger">81</b></td>
+                  </tr>
+                  <tr>
+                    <th scope="row">Dead-Bones</th>
+                    <td class="text-end"><b class="text-danger">2</b></td>
+                  </tr>
+                  <tr>
+                    <th scope="row">Eland</th>
+                    <td class="text-end">284</td>
+                  </tr>
+                  <tr>
+                    <th scope="row">Ele.Carcass Old</th>
+                    <td class="text-end">177</td>
+                  </tr>
+                  <tr>
+                    <th scope="row">Elephant</th>
+                    <td class="text-end">2,837</td>
+                  </tr>
+                  <tr>
+                    <th scope="row">Gazelle_Gr</th>
+                    <td class="text-end">170</td>
+                  </tr>
+                  <tr>
+                    <th scope="row">Gazelle_Th</th>
+                    <td class="text-end"><b class="text-danger">92</b></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="col col-12 col-sm-12 col-md-12 col-lg-4 col-xl-4">
+              <table class="table table-striped table-hover">
+                <thead>
+                  <tr>
+                    <th scope="col">Species</th>
+                    <th scope="col" class="text-end">Total</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <th scope="row">Gerenuk</th>
+                    <td class="text-end">130</td>
+                  </tr>
+                  <tr>
+                    <th scope="row">Giant Forest Hog</th>
+                    <td class="text-end"><b class="text-danger">40</b></td>
+                  </tr>
+                  <tr>
+                    <th scope="row">Giraffe</th>
+                    <td class="text-end">785</td>
+                  </tr>
+                  <tr>
+                    <th scope="row">Goat</th>
+                    <td class="text-end">2,184</td>
+                  </tr>
+                  <tr>
+                    <th scope="row">Hartebeest</th>
+                    <td class="text-end">2,950</td>
+                  </tr>
+                  <tr>
+                    <th scope="row">Hippo</th>
+                    <td class="text-end">1,240</td>
+                  </tr>
+                  <tr>
+                    <th scope="row">Impala</th>
+                    <td class="text-end">366</td>
+                  </tr>
+                  <tr>
+                    <th scope="row">Kob</th>
+                    <td class="text-end">29,282</td>
+                  </tr>
+                  <tr>
+                    <th scope="row">Kudu</th>
+                    <td class="text-end"><b class="text-danger">68</b></td>
+                  </tr>
+                  <tr>
+                    <th scope="row">Motorcycle</th>
+                    <td class="text-end"><b class="text-danger">69</b></td>
+                  </tr>
+                  <tr>
+                    <th scope="row">Oribi</th>
+                    <td class="text-end">2,848</td>
+                  </tr>
+                  <tr>
+                    <th scope="row">Oryx</th>
+                    <td class="text-end">568</td>
+                  </tr>
+                  <tr>
+                    <th scope="row">Ostrich</th>
+                    <td class="text-end"><b class="text-danger">92</b></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="col col-12 col-sm-12 col-md-12 col-lg-4 col-xl-4">
+              <table class="table table-striped table-hover">
+                <thead>
+                  <tr>
+                    <th scope="col">Species</th>
+                    <th scope="col" class="text-end">Total</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <th scope="row">Roof Grass</th>
+                    <td class="text-end">394</td>
+                  </tr>
+                  <tr>
+                    <th scope="row">Roof Mabati</th>
+                    <td class="text-end">251</td>
+                  </tr>
+                  <tr>
+                    <th scope="row">Sheep</th>
+                    <td class="text-end">317</td>
+                  </tr>
+                  <tr>
+                    <th scope="row"><b class="text-danger">Test</b></th>
+                    <td class="text-end"><b class="text-danger">1,122</b></td>
+                  </tr>
+                  <tr>
+                    <th scope="row">Topi</th>
+                    <td class="text-end">225</td>
+                  </tr>
+                  <tr>
+                    <th scope="row">Vehicle</th>
+                    <td class="text-end"><b class="text-danger">15</b></td>
+                  </tr>
+                  <tr>
+                    <th scope="row">Warthog</th>
+                    <td class="text-end">3,724</td>
+                  </tr>
+                  <tr>
+                    <th scope="row">Waterbuck</th>
+                    <td class="text-end">3,285</td>
+                  </tr>
+                  <tr>
+                    <th scope="row">White bones</th>
+                    <td class="text-end">139</td>
+                  </tr>
+                  <tr>
+                    <th scope="row">White_Bones</th>
+                    <td class="text-end">573</td>
+                  </tr>
+                  <tr>
+                    <th scope="row">Wildebeest</th>
+                    <td class="text-end"><b class="text-danger">4</b></td>
+                  </tr>
+                  <tr>
+                    <th scope="row">Zebra</th>
+                    <td class="text-end">1,610</td>
+                  </tr>
+                  <tr>
+                    <th scope="row" class="text-start">All Species</th>
+                    <td class="text-end"><b>59,754</b></td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+        <figcaption class="figure-caption">The annotations highlighted in red are the labels with less than 100 annotations in the entire dataset.  The class "Test" is also highlighted.</figcaption>
+        <div class="container">
+          <div class="row">
+            <div class="col col-12 col-sm-12 col-md-12 col-lg-1 col-xl-1">
+            </div>
+            <div class="col col-12 col-sm-12 col-md-12 col-lg-10 col-xl-10">
+              <img src="img/annotations.jpg" class="img-fluid img-thumbnail mx-auto d-block">
+              <figcaption class="figure-caption">Example annotations loaded into the WBIA software suite from the above dataset.</figcaption>
+            </div>
+            <div class="col col-12 col-sm-12 col-md-12 col-lg-1 col-xl-1">
+            </div>
+          </div>
+        </div>
+        <p>
+          Lastly, when training the bounding box localizer, the following species were re-named and merged
+        </p>
+        <div class="container">
+          <div class="row">
+            <div class="col col-12 col-sm-12 col-md-12 col-lg-4 col-xl-4"></div>
+            <div class="col col-12 col-sm-12 col-md-12 col-lg-4 col-xl-4">
+              <table class="table table-striped table-hover">
+                <thead>
+                  <tr>
+                    <th scope="col">Provided Label</th>
+                    <th scope="col">ML Label</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <th scope="row">Gazelle_Gr</th>
+                    <td>Grants Gazelle</td>
+                  </tr>
+                  <tr>
+                    <th scope="row">Gazelle_Th</th>
+                    <td>Thomsons Gazelle</td>
+                  </tr>
+                  <tr>
+                    <th scope="row">Dead animal/White bones</th>
+                    <td>White Bones</td>
+                  </tr>
+                  <tr>
+                    <th scope="row">Dead-Bones</th>
+                    <td>White Bones</td>
+                  </tr>
+                  <tr>
+                    <th scope="row">Ele.Carcass Old</th>
+                    <td>White Bones</td>
+                  </tr>
+                  <tr>
+                    <th scope="row">White bones</th>
+                    <td>White Bones</td>
+                  </tr>
+                  <tr>
+                    <th scope="row">White_Bones</th>
+                    <td>White Bones</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+            <div class="col col-12 col-sm-12 col-md-12 col-lg-4 col-xl-4"></div>
+          </div>
+        </div>
+        <div class="pagebreak"></div>
+        <h2 id="results">
+        Results
+        </h2>
+        <h5>
+        Tile Grid
+        </h5>
+        <img src="img/vulcan-tile-gid-8135-num-patches-16-num-missed-0.jpg" class="img-fluid img-thumbnail mx-auto d-block">
+        <figcaption class="figure-caption">An example grid extraction visualization from the Phase 1 report.  The tiles from grid 1 are colored in orange, the tiles from grid 2 are blue, and the border tiles are colored black.</figcaption>
+        <!-- <img src="img/vulcan-tile-gid-8135-num-patches-16-num-missed-0-cropped.jpg" class="img-fluid img-thumbnail mx-auto d-block"> -->
+        <!-- <figcaption class="figure-caption">An example grid extraction visualization from the Phase 1 report.</figcaption> -->
+        <img src="img/vulcan-tile-gid-8135-num-patches-16-num-missed-0-tiles.jpg" class="img-fluid img-thumbnail mx-auto d-block">
+        <figcaption class="figure-caption">The extracted tiles from the above example image, with each tile's weighted positive area percentage in the top left.</figcaption>
+        <p>
+          For the MVP model, the grid2 extraction was turned off for speed and the resulting grid1 tiles were further subsampled to only keep 10% of the negative tiles in each image.  These tiles formed the global negative set that was mined with the iterative boostring strategy.
+        </p>
+        <img src="img/scout-tile-gid-1204-num-patches-55-num-missed-6.jpg" class="img-fluid img-thumbnail mx-auto d-block">
+        <img src="img/scout-tile-gid-1152-num-patches-13-num-missed-2.jpg" class="img-fluid img-thumbnail mx-auto d-block">
+        <img src="img/scout-tile-gid-1079-num-patches-15-num-missed-0.jpg" class="img-fluid img-thumbnail mx-auto d-block">
+        <img src="img/scout-tile-gid-1065-num-patches-10-num-missed-0.jpg" class="img-fluid img-thumbnail mx-auto d-block">
+        <img src="img/scout-tile-gid-122-num-patches-24-num-missed-0.jpg" class="img-fluid img-thumbnail mx-auto d-block">
+        <div class="container mt-5">
+          <div class="row">
+            <div class="col col-12 col-sm-12 col-md-12 col-lg-2 col-xl-2">
+            </div>
+            <div class="col col-12 col-sm-12 col-md-12 col-lg-8 col-xl-8">
+              <img src="img/database.jpg" class="img-fluid img-thumbnail mx-auto d-block">
+              <figcaption class="figure-caption">The final WBIA database, including the number of images, annotations, and (subsampled) tiles.</figcaption>
+            </div>
+            <div class="col col-12 col-sm-12 col-md-12 col-lg-2 col-xl-2">
+            </div>
+          </div>
+        </div>
+        <div class="pagebreak"></div>
+        <h5>
+        Model Training
+        </h5>
+        <table class="table table-striped table-hover text-end">
+          <thead>
+            <tr>
+              <th scope="col" class="text-start">Partition</th>
+              <th scope="col">Total</th>
+              <th scope="col">Positive</th>
+              <th scope="col">Negative</th>
+              <th scope="col">Train</th>
+              <th scope="col">Test</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <th scope="col" class="text-start">Images</th>
+              <td>8,211</td>
+              <td>6,662</td>
+              <td>1,549</td>
+              <td>6,560</td>
+              <td>1,651</td>
+            </tr>
+          </tbody>
+          <tbody>
+            <tr>
+              <th scope="col" class="text-start">Tiles</th>
+              <td>685,757</td>
+              <td>42,054 <b>*</b></td>
+              <td>643,703</td>
+              <td>547,420</td>
+              <td>138,337</td>
+            </tr>
+          </tbody>
+          <tbody>
+            <tr>
+              <th scope="col" class="text-start">WIC Boost 0 Tiles</th>
+              <td>66,540</td>
+              <td>33,270</td>
+              <td>33,270</td>
+              <td>53,232<br/>(<i>train</i>)</td>
+              <td>13,308<br/>(<i>val</i>)</td>
+            </tr>
+          </tbody>
+          <tbody>
+            <tr>
+              <th scope="col" class="text-start">WIC Boost 1 Tiles</th>
+              <td>92,207</td>
+              <td>33,270</td>
+              <td>58,937</td>
+              <td>73,765<br/>(<i>train</i>)</td>
+              <td>18,442<br/>(<i>val</i>)</td>
+            </tr>
+          </tbody>
+          <tbody>
+            <tr>
+              <th scope="col" class="text-start">WIC Boost 2 Tiles</th>
+              <td>117,734</td>
+              <td>33,270</td>
+              <td>84,194</td>
+              <td>94,187<br/>(<i>train</i>)</td>
+              <td>23,547<br/>(<i>val</i>)</td>
+            </tr>
+          </tbody>
+          <tbody>
+            <tr>
+              <th scope="col" class="text-start">LOC Tiles</th>
+              <td>53,072</td>
+              <td>33,270</td>
+              <td>19,802</td>
+              <td>39,960<br/>(<i>train</i>)</td>
+              <td>13,112<br/>(<i>val</i>)</td>
+            </tr>
+          </tbody>
+        </table>
+        <figcaption class="figure-caption">A breakdown of the number of images and tiles available in the dataset and used for training the WIC and LOC models.  When a model's trainval dataset is sampled, there is an 80/20% split between training and validation that is applied automatically.</figcaption>
+        <figcaption class="figure-caption"><b>*</b> The number of positive tiles is calculated by any tile that has an portion of an annotation within it.  For training, we restrict these tiles further to require at least a weighted percentage of the pixel area (minimum 2.5%) is covered by an annotation.  This reduces the effective number of positive tiles from 42,054 to 33,270</figcaption>
+        <div class="pagebreak"></div>
+        <p>
+          Below is a list of model training improvements made for MVP:
+          <ul>
+            <li>Changed from DenseNet-201 to ResNet-50 (see plot below) to speed up training and inference time</li>
+            <li>Changed from the PyTorch SGD with Momentum optimizer to Adam (default LR)</li>
+            <li>Added more data augmentation types to reduce over-fitting, and changed the batch sampling ratio to 1.0 between positives and negatives</li>
+            <li>Improved training infrastructure to use all available CPU cores (40 for MVP) and added multi-GPU training and inference for both models</li>
+            <li>Changed the WIC from an ensemble of multiple models to a single model.  The performance benefit seen during Phase 1 was relatively marginal (<5%) and significantly slowed training and inference time (by a factor of 3 to 5).</li>
+            <li>Changed the number of WIC boosting rounds from ten (Phase 1 research) to three.  The hard negative boosting proceeedure saw diminishing returns in Phase 1 after round three, and a more substantial improvement to general ML performance was obtained by cleaning up missing ground-truth labels in the underying training dataset.</li>
+          </ul>
+        </p>
+        <div class="container">
+          <div class="row">
+            <div class="col col-2 col-sm-2 col-md-2 col-lg-2 col-xl-2">
+            </div>
+            <div class="col col-8 col-sm-8 col-md-8 col-lg-8 col-xl-8">
+              <img src="img/resnet.jpg" class="img-fluid img-thumbnail mx-auto d-block">
+              <figcaption class="figure-caption">A plot from <i>"Benchmark Analysis of Representative Deep Neural Network Architectures"</i> by Bianco <i>et al.</i> on the real-time inference performance of various CNN backbones.  We can see that DenseNet-201 (Phase 1 backbone) is slightly more accurate than ResNet-50 (MVP backbone), but it is substantially slower.  To maximize speed while obtaining a similar level of accuracy, the MVP model uses ResNet-50 as the backbone of the WIC.</figcaption>
+            </div>
+            <div class="col col-2 col-sm-2 col-md-2 col-lg-2 col-xl-2">
+            </div>
+          </div>
+        </div>
+        <div class="pagebreak"></div>
+        <h5>
+        Whole Image Classifier (WIC)
+        </h5>
+        <div class="container">
+          <div class="row">
+            <div class="col col-6 col-sm-6 col-md-6 col-lg-6 col-xl-6">
+              <img src="img/classifier-cameratrap-precision-recall-roc-target-recall-0.95-dirty-recovery-false.jpg" class="img-fluid img-thumbnail mx-auto d-block">
+              <figcaption class="figure-caption">WIC performance plots prior to any ground-truth cleaning.</figcaption>
+            </div>
+            <div class="col col-6 col-sm-6 col-md-6 col-lg-6 col-xl-6">
+              <img src="img/classifier-cameratrap-precision-recall-roc-target-recall-0.95-cleaned-recovery-false.jpg" class="img-fluid img-thumbnail mx-auto d-block">
+              <figcaption class="figure-caption">WIC performance plots after ground-truth cleaning.  Ground-truth labels were converted from positive to negative if the final WIC model predicted the confidence score to be below the afterage negative tile score (~2.3%) <b>and</b> if the covered area of any ground-truth bounding boxes was less than 5%.  Negative ground-truth labels were converted to positive labels if the covered area was greater than 0% <b>or</b> the final WIC model predicted the confidence score to be above the average poitive tile score (~86%).</figcaption>
+            </div>
+          </div>
+        </div>
+        <div class="pagebreak"></div>
+        <div class="container">
+          <div class="row">
+            <div class="col col-2 col-sm-2 col-md-2 col-lg-2 col-xl-2">
+            </div>
+            <div class="col col-8 col-sm-8 col-md-8 col-lg-8 col-xl-8">
+              <img src="img/classifier-cameratrap-precision-recall-roc-target-recall-0.95-cleaned-recovery-false-confusion.jpg" class="img-fluid img-thumbnail mx-auto d-block">
+              <figcaption class="figure-caption">The confusion matrix for the final WIC boosting round model, which obtains a classification accuracy of 97.57% and an Operating Point (OP) of 7%</figcaption>
+            </div>
+            <div class="col col-2 col-sm-2 col-md-2 col-lg-2 col-xl-2">
+            </div>
+          </div>
+        </div>
+        <div class="pagebreak"></div>
+        <h5>
+        Localizer (LOC)
+        </h5>
+        <p>
+          The localizer is run as a secondard pipeline component after the WIC.  As such, we can focus the performance plots of the LOC on its recall ability.  Because this is the first models we have trained to support multiple species, we make a simplifying assumption that the localization is considered correct if it gets the bounding box correct (IoU=20%) regardless if it labeled the species correctly.  Preliminary results suggest that the model's localization performance drops by ~8% if we require matched bounding box predictions to also have the correct species as the ground-truth.  The full breakdown of the LOC model by species is still pending.
+        </p>
+        <p>
+          Furthermore, because the LOC is run on tiles that overlap with two grid strategies, we can ommit any failed detections on the margins of each tile.  The assumption is that a neighboring tile has that margin in its respective center pixels, so our evaluation focuses on the middle center of each tile (margin=32, tile=256x256) and suggests operating points based on optimizing for this use case.  Preliminary results indicate that the LOC's performance improves by 14.2% if we ignore the annotations that are missed along the 1/4 margin of each tile.  The aggregation code (evaulation also pending) is responsible for performing non-maximim suppression (NMS) across and between tiles, and aggregating the final detections at the image-level.  Below are the tile-specific results and suggested performance numbers for MVP.
+        </p>
+        <div class="container">
+          <div class="row">
+            <div class="col col-6 col-sm-6 col-md-6 col-lg-6 col-xl-6">
+              <img src="img/scout-gt-positive-margin-32-v0-v1-any-match-localizer-precision-recall-0.20-pr.jpg" class="img-fluid img-thumbnail mx-auto d-block">
+              <figcaption class="figure-caption">The Precision-Recall curves for the LOC model.  These plots are generated for different non-maximum suppression (NMS) thresholds and is aggregating the generalized performance for all species.</figcaption>
+            </div>
+            <div class="col col-6 col-sm-6 col-md-6 col-lg-6 col-xl-6">
+              <img src="img/scout-gt-positive-margin-32-v0-v1-any-match-localizer-precision-recall-0.20-confusion.jpg" class="img-fluid img-thumbnail mx-auto d-block">
+              <figcaption class="figure-caption">The confusion matrix for the best performing NMS threshold.  The MVP LOC model is 75.53% accurate and obtains a Average Precision (AP) of 92% for all species.  The recommended NMS of 60% and Operating Point (OP) of 38%.</figcaption>
+            </div>
+          </div>
+        </div>
+        <img src="img/mvp_prediction.jpg" class="img-fluid img-thumbnail mx-auto d-block">
+        <figcaption class="figure-caption">An example prediction using the MVP models.</figcaption>
+        <div class="pagebreak"></div>
+        <h5>
+        Open Source on WBIA
+        </h5>
+        <div class="container">
+          <div class="row">
+            <div class="col col-12 col-sm-12 col-md-12 col-lg-2 col-xl-2">
+            </div>
+            <div class="col col-12 col-sm-12 col-md-12 col-lg-8 col-xl-8">
+              <img src="img/github.jpg" class="img-fluid img-thumbnail mx-auto d-block">
+              <figcaption class="figure-caption">The MWS Phase 1 code was merged into the main branch of WBIA on GitHub and is now available as part of that open source project.  The models that were trained during Phase 1 have been uploaded to Wild Me's public CDN and the full list of APIs are available by adding a single command line flag to the standard WBIA Docker image.</figcaption>
+            </div>
+            <div class="col col-12 col-sm-12 col-md-12 col-lg-2 col-xl-2">
+            </div>
+          </div>
+        </div>
+        <div class="pagebreak"></div>
+        <h5>
+        ScoutBot
+        </h5>
+        <div class="container">
+          <div class="row">
+            <div class="col col-12 col-sm-12 col-md-12 col-lg-2 col-xl-2">
+            </div>
+            <div class="col col-12 col-sm-12 col-md-12 col-lg-8 col-xl-8">
+              <img src="img/scoutbot.jpg" class="img-fluid img-thumbnail mx-auto d-block">
+              <figcaption class="figure-caption">The MWS Phase 1 and MVP models have been converted to ONNX (Open Neural Network eXchange) model files and have been deployed as a stand-alone Python package called "ScoutBot".  The package is open source, has CI/CD on GitHub, has automated Docker and PyPI deployments, has documentation on ReadTheDocs, offers a Python API to interface with the Scout ML, offers a CLI executable to run the Scout ML from the command line, and will download models from an external CDN as needed for inference.</figcaption>
+            </div>
+            <div class="col col-12 col-sm-12 col-md-12 col-lg-2 col-xl-2">
+            </div>
+          </div>
+        </div>
+        <div class="pagebreak"></div>
+        <h5>
+        Docker
+        </h5>
+        <div class="container">
+          <div class="row">
+            <div class="col col-12 col-sm-12 col-md-12 col-lg-2 col-xl-2">
+            </div>
+            <div class="col col-12 col-sm-12 col-md-12 col-lg-8 col-xl-8">
+              <img src="img/docker.jpg" class="img-fluid img-thumbnail mx-auto d-block">
+              <figcaption class="figure-caption">Scoutbot has been uploaded to Docker Hub that launches a pre-build demo.  The Dockerfile shows how to install and setup the GPU dependencies for ScoutBot's accelerated inference.  Furthermore, the Docker image has the ML models pre-downloaded and baked into the image, so inference can happen offline.</figcaption>
+            </div>
+            <div class="col col-12 col-sm-12 col-md-12 col-lg-2 col-xl-2">
+            </div>
+          </div>
+        </div>
+        <div class="pagebreak"></div>
+        <h2 id="issues">
+        Known Issues
+        </h2>
+        <p>
+          <ul>
+            <li>Small animals are a challenge for the positive/negative threshold of 2.5% pixel area coverage</li>
+            <li>Not all training annotations images were used due to a lack of a grid2 extraction during training</li>
+            <li>Large objects like construction vehicles and buildings are larger than the tile size</li>
+            <li>The detected species labels sometimes get confused for other, visually-similar species</li>
+            <li>The image-level aggregation coniguration has not been fully validated again held-out test images</li>
+            <li>At least one ground-truth image has embedded bounding boxes on the pixel information, as seen below:</li>
+          </ul>
+        </p>
+        <!--
+        <div class="container">
+          <div class="row">
+            <div class="col col-12 col-sm-12 col-md-12 col-lg-4 col-xl-4">
+              <img src="img/tile-fp-weighting-1.jpg" class="img-fluid img-thumbnail mx-auto d-block">
+            </div>
+            <div class="col col-12 col-sm-12 col-md-12 col-lg-4 col-xl-4">
+              <img src="img/tile-fp-weighting-2.jpg" class="img-fluid img-thumbnail mx-auto d-block">
+            </div>
+            <div class="col col-12 col-sm-12 col-md-12 col-lg-4 col-xl-4">
+              <img src="img/tile-fp-weighting-3.jpg" class="img-fluid img-thumbnail mx-auto d-block">
+            </div>
+          </div>
+        </div>
+        -->
+        <img src="img/0e396e60-c4ba-f6f6-fe2c-c4adf4c9d984.jpg" class="img-fluid img-thumbnail mx-auto d-block">
+        <figcaption class="figure-caption">A ground-truth image with embedded bounding boxes for each object, incorrectly altering and modifying the original pixel data on the image.</figcaption>
+        <!-- JavaScript Bundle with Popper -->
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.1/dist/js/bootstrap.bundle.min.js" integrity="sha384-u1OknCvxWvY5kfmNBILK2hRnQC3Pr17a+RTT6rIHI7NnikvbZlHgTPOOmMi466C8" crossorigin="anonymous"></script>
+        <!-- Template Javascript -->
+        <!-- <script src="js/main.js"></script> -->
+      </body>
+    </html>
