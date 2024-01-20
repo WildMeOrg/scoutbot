@@ -8,7 +8,7 @@ numpy
 onnxruntime
 opencv-python-headless
 Pillow
-pooch
+pooch==1.8.0
 rich
 sphinx-click
 torch
