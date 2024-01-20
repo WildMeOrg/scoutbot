@@ -3,7 +3,7 @@ import numpy as np
 import logging
 import os
 
-from sahi_batched.models import Yolov8DetectionModel
+from .models import Yolov8DetectionModel
 from typing import List, Optional, Union, Dict
 
 from sahi.prediction import ObjectPrediction
