@@ -6,7 +6,7 @@ gradio
 imgaug
 numpy
 onnxruntime
-opencv-python-headless==4.8
+opencv-python-headless==4.7.0.68
 Pillow
 pooch==1.8.0
 rich
