@@ -49,6 +49,7 @@ how the entire pipeline can be run on tiles or images, respectively.
         # nms_thresh=agg_nms_thresh,  # Optional override of config
     )
 '''
+import cv2
 from os.path import exists
 
 import pooch
@@ -64,7 +65,6 @@ from scoutbot import agg, loc, tile, wic, tile_batched  # NOQA
 
 # from tile_batched.models import Yolov8DetectionModel
 # from tile_batched import get_sliced_prediction_batched
-import cv2
 
 VERSION = '0.1.18'
 version = VERSION
@@ -188,7 +188,7 @@ def pipeline(
 
     return wic_, detects
 
-    
+
 def pipeline_v3(
     filepath
 ):
@@ -232,7 +232,7 @@ def pipeline_v3(
 
     # Postprocess detections for WIC
     coco_prediction_list = []
-    for object_prediction in result.object_prediction_list:
+    for object_prediction in det_result.object_prediction_list:
         coco_prediction_list.append(object_prediction.to_coco_prediction(image_id=None).json)
 
     wic_score = max([item['score'] for item in coco_prediction_list])

@@ -5,9 +5,11 @@
 '''
 import setuptools
 
+
 def load_requirements(filename='requirements.txt'):
     with open(filename, 'r') as file:
         return file.read().splitlines()
+
 
 if __name__ == '__main__':
     setuptools.setup(

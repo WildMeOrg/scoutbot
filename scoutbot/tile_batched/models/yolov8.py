@@ -2,6 +2,7 @@ from sahi.models.yolov8 import Yolov8DetectionModel as Yolov8DetectionModelBase
 from typing import List
 import numpy as np
 
+
 class Yolov8DetectionModel(Yolov8DetectionModelBase):
     def perform_inference(self, images: List[np.ndarray]):
         """

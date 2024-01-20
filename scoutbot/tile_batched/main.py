@@ -23,6 +23,7 @@ POSTPROCESS_NAME_TO_CLASS = {
     "LSNMS": LSNMSPostprocess,
 }
 
+
 class PredictionResult:
     def __init__(
         self,
@@ -31,6 +32,7 @@ class PredictionResult:
     ):
         self.object_prediction_list = object_prediction_list
         self.durations_in_seconds = durations_in_seconds
+
 
 class PseudoPIL:
     def __init__(self, ndarray):
@@ -41,12 +43,13 @@ class PseudoPIL:
         # Assuming the ndarray is in HWC format (Height x Width x Channels)
         height, width = self.ndarray.shape[:2]
         return (width, height)
-    
+
     def __array__(self, dtype=None):
         # This method is called by np.asarray. It returns the ndarray.
         if dtype:
             return self.ndarray.astype(dtype)
         return self.ndarray
+
 
 def read_image_as_pil(image: Union[str, np.ndarray], exif_fix: bool = False):
     return PseudoPIL(image)
@@ -117,6 +120,7 @@ def get_slice_bboxes(
             x_min = x_max - x_overlap
         y_min = y_max - y_overlap
     return slice_bboxes
+
 
 class SlicedImage:
     def __init__(self, image, starting_pixel):
@@ -299,6 +303,7 @@ def slice_image(
 
     return sliced_image_result
 
+
 def get_prediction_batched(
     image,
     detection_model,
@@ -361,6 +366,7 @@ def get_prediction_batched(
     return PredictionResult(
         object_prediction_list=object_prediction_list, durations_in_seconds=durations_in_seconds
     )
+
 
 def get_sliced_prediction_batched(
     image,

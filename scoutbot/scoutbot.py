@@ -10,7 +10,7 @@ import click
 import utool as ut
 
 import scoutbot
-from scoutbot import agg, loc, log, wic, tile_batched
+from scoutbot import agg, loc, log, wic
 
 
 def pipeline_filepath_validator(ctx, param, value):
