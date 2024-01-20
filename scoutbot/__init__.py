@@ -60,10 +60,10 @@ log = utils.init_logging()
 QUIET = not utils.VERBOSE
 
 
-from scoutbot import agg, loc, tile, wic  # NOQA
+from scoutbot import agg, loc, tile, wic, sahi_batched  # NOQA
 
-from sahi_batched.models import Yolov8DetectionModel
-from sahi_batched import get_sliced_prediction_batched
+# from sahi_batched.models import Yolov8DetectionModel
+# from sahi_batched import get_sliced_prediction_batched
 import cv2
 
 VERSION = '0.1.18'
@@ -213,13 +213,13 @@ def pipeline_v3(
     # Run Localizer
     yolov8_model_path = loc.fetch(config=config)
 
-    batched_detection_model = Yolov8DetectionModel(
+    batched_detection_model = sahi_batched.Yolov8DetectionModel(
         model_path=yolov8_model_path,
         confidence_threshold=0.3,
         device='cuda:0'
     )
 
-    det_result = get_sliced_prediction_batched(
+    det_result = sahi_batched.get_sliced_prediction_batched(
         cv2.imread(img_path),
         batched_detection_model,
         slice_height=512,

@@ -10,7 +10,7 @@ import click
 import utool as ut
 
 import scoutbot
-from scoutbot import agg, loc, log, wic
+from scoutbot import agg, loc, log, wic, sahi_batched
 
 
 def pipeline_filepath_validator(ctx, param, value):
