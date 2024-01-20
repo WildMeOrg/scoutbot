@@ -213,7 +213,7 @@ def pipeline_v3(
     # Run Localizer
     yolov8_model_path = loc.fetch(config='v3')
 
-    batched_detection_model = tile_batched.models.Yolov8DetectionModel(
+    batched_detection_model = tile_batched.Yolov8DetectionModel(
         model_path=yolov8_model_path,
         confidence_threshold=0.3,
         device='cuda:0'
