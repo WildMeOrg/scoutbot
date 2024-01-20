@@ -62,7 +62,7 @@ QUIET = not utils.VERBOSE
 
 from scoutbot import agg, loc, tile, wic  # NOQA
 
-VERSION = '0.1.17'
+VERSION = '0.1.18'
 version = VERSION
 __version__ = VERSION
 
