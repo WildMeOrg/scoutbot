@@ -62,6 +62,10 @@ QUIET = not utils.VERBOSE
 
 from scoutbot import agg, loc, tile, wic  # NOQA
 
+from sahi_batched.models import Yolov8DetectionModel
+from sahi_batched import get_sliced_prediction_batched
+import cv2
+
 VERSION = '0.1.18'
 version = VERSION
 __version__ = VERSION
@@ -205,8 +209,6 @@ def pipeline_v3(
                 'h': height (float)
             }
     """
-    from sahi_batched.models import Yolov8DetectionModel
-    from sahi_batched import get_sliced_prediction_batched
 
     # Run Localizer
     yolov8_model_path = loc.fetch(config=config)
