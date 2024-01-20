@@ -126,6 +126,7 @@ def pipeline(
 
     #if config == 'v3':
     if 1:
+        print('pipeline v3')
         wic_, detects = scoutbot.pipeline_v3(
             filepath
         )
