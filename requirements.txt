@@ -2,7 +2,6 @@ click
 codecov
 coverage
 cryptography
-cv2
 gradio
 imgaug
 numpy
