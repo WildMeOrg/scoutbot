@@ -6,12 +6,14 @@ gradio
 imgaug
 numpy
 onnxruntime
-opencv-python-headless
+opencv-python-headless=4.8
 Pillow
-pooch
+pooch==1.8.0
 rich
+sahi
 sphinx-click
 torch
 torchvision
 tqdm
+ultralytics
 wbia-utool

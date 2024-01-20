@@ -25,7 +25,7 @@ def pipeline_filepath_validator(ctx, param, value):
     '--config',
     help='Which ML models to use for inference',
     default=None,
-    type=click.Choice(['phase1', 'mvp', 'old', 'new']),
+    type=click.Choice(['phase1', 'mvp', 'old', 'new', 'v3']),
 )
 def fetch(config):
     """
@@ -45,7 +45,7 @@ def fetch(config):
     '--config',
     help='Which ML models to use for inference',
     default=None,
-    type=click.Choice(['phase1', 'mvp', 'old', 'new']),
+    type=click.Choice(['phase1', 'mvp', 'old', 'new', 'v3']),
 )
 @click.option(
     '--output',
@@ -124,15 +124,20 @@ def pipeline(
     agg_thresh /= 100.0
     agg_nms_thresh /= 100.0
 
-    wic_, detects = scoutbot.pipeline(
-        filepath,
-        config=config,
-        wic_thresh=wic_thresh,
-        loc_thresh=loc_thresh,
-        loc_nms_thresh=loc_nms_thresh,
-        agg_thresh=agg_thresh,
-        agg_nms_thresh=agg_nms_thresh,
-    )
+    if config == 'v3':
+        wic_, detects = scoutbot.pipeline_v3(
+            filepath
+        )
+    else:
+        wic_, detects = scoutbot.pipeline(
+            filepath,
+            config=config,
+            wic_thresh=wic_thresh,
+            loc_thresh=loc_thresh,
+            loc_nms_thresh=loc_nms_thresh,
+            agg_thresh=agg_thresh,
+            agg_nms_thresh=agg_nms_thresh,
+        )
 
     data = {
         filepath: {

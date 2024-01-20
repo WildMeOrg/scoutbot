@@ -2,7 +2,9 @@
 import time
 
 import cv2
+
 import gradio as gr
+
 import numpy as np
 
 from scoutbot import loc, wic

@@ -49,6 +49,7 @@ how the entire pipeline can be run on tiles or images, respectively.
         # nms_thresh=agg_nms_thresh,  # Optional override of config
     )
 '''
+import cv2
 from os.path import exists
 
 import pooch
@@ -60,9 +61,12 @@ log = utils.init_logging()
 QUIET = not utils.VERBOSE
 
 
-from scoutbot import agg, loc, tile, wic  # NOQA
+from scoutbot import agg, loc, tile, wic, tile_batched  # NOQA
 
-VERSION = '0.1.17'
+# from tile_batched.models import Yolov8DetectionModel
+# from tile_batched import get_sliced_prediction_batched
+
+VERSION = '0.1.18'
 version = VERSION
 __version__ = VERSION
 
@@ -86,8 +90,11 @@ def fetch(pull=False, config=None):
     Raises:
         AssertionError: If any model cannot be fetched.
     """
-    wic.fetch(pull=pull, config=None)
-    loc.fetch(pull=pull, config=None)
+    if config == 'v3':
+        loc.fetch(pull=pull, config=config)
+    else:
+        wic.fetch(pull=pull, config=None)
+        loc.fetch(pull=pull, config=None)
 
 
 def pipeline(
@@ -178,6 +185,73 @@ def pipeline(
         for tile_filepath in tile_filepaths:
             if exists(tile_filepath):
                 ut.delete(tile_filepath, verbose=False)
+
+    return wic_, detects
+
+
+def pipeline_v3(
+    filepath
+):
+    """
+    Run the ML pipeline on a given image filepath and return the detections
+
+    The final output is a list of dictionaries, each representing a single detection.
+    Each dictionary has a structure with the following keys:
+
+        ::
+
+            {
+                'l': class_label (str)
+                'c': confidence (float)
+                'x': x_top_left (float)
+                'y': y_top_left (float)
+                'w': width (float)
+                'h': height (float)
+            }
+    """
+
+    # Run Localizer
+    yolov8_model_path = loc.fetch(config='v3')
+
+    batched_detection_model = tile_batched.Yolov8DetectionModel(
+        model_path=yolov8_model_path,
+        confidence_threshold=0.3,
+        device='cuda:0'
+    )
+
+    det_result = tile_batched.get_sliced_prediction_batched(
+        cv2.imread(filepath),
+        batched_detection_model,
+        slice_height=512,
+        slice_width=512,
+        overlap_height_ratio=0.25,
+        overlap_width_ratio=0.25,
+        perform_standard_pred=False,
+        postprocess_class_agnostic=True
+    )
+
+    # Postprocess detections for WIC
+    coco_prediction_list = []
+    for object_prediction in det_result.object_prediction_list:
+        coco_prediction_list.append(object_prediction.to_coco_prediction(image_id=None).json)
+
+    wic_score = max([item['score'] for item in coco_prediction_list])
+
+    # Convert to output formats
+
+    detects = []
+    for pred in coco_prediction_list:
+        converted_pred = {
+            'l': pred['category_name'],
+            'c': pred['score'],
+            'x': pred['bbox'][0],
+            'y': pred['bbox'][1],
+            'w': pred['bbox'][2],
+            'h': pred['bbox'][3],
+        }
+        detects.append(converted_pred)
+
+    wic_ = round(wic_score, 4)
 
     return wic_, detects
 

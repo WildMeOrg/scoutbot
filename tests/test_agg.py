@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 from os.path import abspath, join
 
-import utool as ut
-
 from scoutbot import agg, loc, tile, wic
+
+import utool as ut
 
 
 def test_agg_compute_phase1():
