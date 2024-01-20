@@ -111,6 +111,11 @@ CONFIGS = {
             (11.2364, 10.0071),
         ],
     },
+    'v3':{
+        'hash': None, #'46cbbccf922552703a1fe8a756544e43'
+        'name': 'yolov8.kaza.pt',
+        'path': join(PWD, 'models', 'yolo', 'yolov8.kaza.pt'),
+    }
 }
 CONFIGS[None] = CONFIGS[DEFAULT_CONFIG]
 CONFIGS['old'] = CONFIGS['phase1']
