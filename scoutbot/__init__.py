@@ -87,7 +87,7 @@ def fetch(pull=False, config=None):
         AssertionError: If any model cannot be fetched.
     """
     if config == 'v3':
-        loc.fetch(pull=pull, config=config')
+        loc.fetch(pull=pull, config=config)
     else:
         wic.fetch(pull=pull, config=None)
         loc.fetch(pull=pull, config=None)
