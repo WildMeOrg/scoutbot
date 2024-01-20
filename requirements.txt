@@ -2,6 +2,7 @@ click
 codecov
 coverage
 cryptography
+cv2
 gradio
 imgaug
 numpy
@@ -10,11 +11,10 @@ opencv-python-headless
 Pillow
 pooch==1.8.0
 rich
+sahi
 sphinx-click
 torch
 torchvision
 tqdm
-wbia-utool
-sahi
 ultralytics
-cv2
+wbia-utool
