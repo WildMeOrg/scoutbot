@@ -1,1 +1,1 @@
-from .main import get_sliced_prediction_batched #NOQA
+from .main import get_sliced_prediction_batched # NOQA
