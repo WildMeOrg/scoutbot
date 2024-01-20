@@ -220,7 +220,7 @@ def pipeline_v3(
     )
 
     det_result = tile_batched.get_sliced_prediction_batched(
-        cv2.imread(img_path),
+        cv2.imread(filepath),
         batched_detection_model,
         slice_height=512,
         slice_width=512,
