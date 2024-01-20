@@ -16,9 +16,6 @@ from sahi.postprocess.combine import (
 )
 
 from sahi.models.yolov8 import Yolov8DetectionModel as Yolov8DetectionModelBase
-from typing import List
-import numpy as np
-
 
 POSTPROCESS_NAME_TO_CLASS = {
     "GREEDYNMM": GreedyNMMPostprocess,
