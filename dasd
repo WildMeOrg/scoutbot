@@ -12,8 +12,8 @@ Date:   Sat Jan 20 10:39:49 2024 +0400
  [m
  from scoutbot import agg, loc, tile, wic  # NOQA[m
  [m
-[32m+[m[32mfrom sahi_batched.models import Yolov8DetectionModel[m
-[32m+[m[32mfrom sahi_batched import get_sliced_prediction_batched[m
+[32m+[m[32mfrom tile_batched.models import Yolov8DetectionModel[m
+[32m+[m[32mfrom tile_batched import get_sliced_prediction_batched[m
 [32m+[m[32mimport cv2[m
 [32m+[m
  VERSION = '0.1.18'[m
@@ -23,8 +23,8 @@ Date:   Sat Jan 20 10:39:49 2024 +0400
                  'h': height (float)[m
              }[m
      """[m
-[31m-    from sahi_batched.models import Yolov8DetectionModel[m
-[31m-    from sahi_batched import get_sliced_prediction_batched[m
+[31m-    from tile_batched.models import Yolov8DetectionModel[m
+[31m-    from tile_batched import get_sliced_prediction_batched[m
  [m
      # Run Localizer[m
      yolov8_model_path = loc.fetch(config=config)[m
