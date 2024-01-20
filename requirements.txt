@@ -2,6 +2,7 @@ click
 codecov
 coverage
 cryptography
+dill==0.3.7
 gradio
 imgaug
 numpy
