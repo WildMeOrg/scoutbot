@@ -1,1 +1,1 @@
-from .yolov8 import Yolov8DetectionModel
+from .yolov8 import Yolov8DetectionModel #NOQA
