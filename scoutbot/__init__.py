@@ -215,7 +215,7 @@ def pipeline_v3(
 
     batched_detection_model = tile_batched.Yolov8DetectionModel(
         model_path=yolov8_model_path,
-        confidence_threshold=0.3,
+        confidence_threshold=0.45,
         device='cuda:0'
     )
 
