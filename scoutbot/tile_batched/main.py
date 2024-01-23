@@ -40,10 +40,11 @@ class Yolov8DetectionModel(Yolov8DetectionModelBase):
 
         all_preds = []
         for i in range(0, len(images), batch_size):
-            batch_images = images[i:i + batch_size]
+            print(i)
+            batch_images = images[i:i+batch_size]
             preds = self.model.predict(source=batch_images, verbose=False, device=self.device)
 
-        all_preds.extend(preds)
+            all_preds.extend(preds)
 
         prediction_result = [
             result.boxes.data[result.boxes.data[:, 4] >= self.confidence_threshold] for result in all_preds
