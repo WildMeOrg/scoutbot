@@ -235,7 +235,7 @@ def pipeline_v3(
     for object_prediction in det_result.object_prediction_list:
         coco_prediction_list.append(object_prediction.to_coco_prediction(image_id=None).json)
 
-    wic_score = max([item['score'] for item in coco_prediction_list])
+    wic_score = max([item['score'] for item in coco_prediction_list], default=0)
 
     # Convert to output formats
 
