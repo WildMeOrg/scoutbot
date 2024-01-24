@@ -246,7 +246,7 @@ def pipeline_v3(
     detects = []
     for pred in coco_prediction_list:
         converted_pred = {
-            'l': 'object',  # pred['category_name'],
+            'l': pred['category_name'],
             'c': pred['score'],
             'x': pred['bbox'][0],
             'y': pred['bbox'][1],
@@ -448,4 +448,3 @@ def example():
     wic_, detects = pipeline(img_filepath)
 
     log.debug(ut.repr3(detects))
-    
