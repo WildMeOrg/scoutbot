@@ -190,7 +190,8 @@ def pipeline(
 
 
 def pipeline_v3(
-    filepath
+    filepath,
+    batched_detection_model=None
 ):
     """
     Run the ML pipeline on a given image filepath and return the detections
@@ -211,13 +212,15 @@ def pipeline_v3(
     """
 
     # Run Localizer
-    yolov8_model_path = loc.fetch(config='v3')
 
-    batched_detection_model = tile_batched.Yolov8DetectionModel(
-        model_path=yolov8_model_path,
-        confidence_threshold=0.45,
-        device='cuda:0'
-    )
+    if batched_detection_model is None:
+        yolov8_model_path = loc.fetch(config='v3')
+
+        batched_detection_model = tile_batched.Yolov8DetectionModel(
+            model_path=yolov8_model_path,
+            confidence_threshold=0.45,
+            device='cuda:0'
+        )
 
     det_result = tile_batched.get_sliced_prediction_batched(
         cv2.imread(filepath),
@@ -397,6 +400,27 @@ def batch(
         for tile_filepath in tile_filepaths:
             if exists(tile_filepath):
                 ut.delete(tile_filepath, verbose=False)
+
+    return wic_list, detects_list
+
+
+def batch_v3(
+        filepaths,
+):
+    yolov8_model_path = loc.fetch(config='v3')
+
+    batched_detection_model = tile_batched.Yolov8DetectionModel(
+        model_path=yolov8_model_path,
+        confidence_threshold=0.45,
+        device='cuda:0'
+    )
+
+    wic_list = []
+    detects_list = []
+    for filepath in filepaths:
+        wic_, detects = pipeline_v3(filepath, batched_detection_model)
+        wic_list.append(wic_)
+        detects_list.append(detects)
 
     return wic_list, detects_list
 

@@ -260,15 +260,20 @@ def batch(
 
     log.debug(f'Running batch on {len(filepaths)} files...')
 
-    wic_list, detects_list = scoutbot.batch(
-        filepaths,
-        config=config,
-        wic_thresh=wic_thresh,
-        loc_thresh=loc_thresh,
-        loc_nms_thresh=loc_nms_thresh,
-        agg_thresh=agg_thresh,
-        agg_nms_thresh=agg_nms_thresh,
-    )
+    if config == 'v3':
+        wic_list, detects_list = scoutbot.batch_v3(
+            filepaths,
+        )
+    else:
+        wic_list, detects_list = scoutbot.batch(
+            filepaths,
+            config=config,
+            wic_thresh=wic_thresh,
+            loc_thresh=loc_thresh,
+            loc_nms_thresh=loc_nms_thresh,
+            agg_thresh=agg_thresh,
+            agg_nms_thresh=agg_nms_thresh,
+        )
     results = zip(filepaths, wic_list, detects_list)
 
     data = {}
