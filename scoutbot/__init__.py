@@ -448,3 +448,4 @@ def example():
     wic_, detects = pipeline(img_filepath)
 
     log.debug(ut.repr3(detects))
+    

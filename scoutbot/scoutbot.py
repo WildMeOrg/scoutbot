@@ -263,7 +263,6 @@ def batch(
     if config == 'v3':
         wic_list, detects_list = scoutbot.batch_v3(
             filepaths,
-            loc_thresh=loc_thresh,
         )
     else:
         wic_list, detects_list = scoutbot.batch(
