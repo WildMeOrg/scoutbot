@@ -191,7 +191,8 @@ def pipeline(
 
 def pipeline_v3(
     filepath,
-    batched_detection_model=None
+    batched_detection_model=None,
+    loc_thresh=45
 ):
     """
     Run the ML pipeline on a given image filepath and return the detections
@@ -213,12 +214,14 @@ def pipeline_v3(
 
     # Run Localizer
 
+    loc_thresh /= 100.0
+
     if batched_detection_model is None:
         yolov8_model_path = loc.fetch(config='v3')
 
         batched_detection_model = tile_batched.Yolov8DetectionModel(
             model_path=yolov8_model_path,
-            confidence_threshold=0.45,
+            confidence_threshold=loc_thresh,
             device='cuda:0'
         )
 
@@ -406,12 +409,16 @@ def batch(
 
 def batch_v3(
         filepaths,
+        loc_thresh=45
 ):
+    
+    loc_thresh /= 100.0
+
     yolov8_model_path = loc.fetch(config='v3')
 
     batched_detection_model = tile_batched.Yolov8DetectionModel(
         model_path=yolov8_model_path,
-        confidence_threshold=0.45,
+        confidence_threshold=loc_thresh,
         device='cuda:0'
     )
 

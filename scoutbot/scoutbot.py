@@ -164,7 +164,7 @@ def pipeline(
     '--config',
     help='Which ML models to use for inference',
     default=None,
-    type=click.Choice(['phase1', 'mvp', 'old', 'new']),
+    type=click.Choice(['phase1', 'mvp', 'old', 'new', 'v3']),
 )
 @click.option(
     '--output',
