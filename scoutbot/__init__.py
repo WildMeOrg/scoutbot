@@ -436,7 +436,8 @@ def batch_v3(
     detects_list = []
     for filepath in filepaths:
         wic_, detects = pipeline_v3(filepath,
-                                    batched_detection_model,
+                                    config,
+                                    batched_detection_model=batched_detection_model,
                                     loc_thresh=loc_thresh,
                                     slice_height=slice_height,
                                     slice_width=slice_width,
