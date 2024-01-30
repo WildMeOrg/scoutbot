@@ -124,7 +124,7 @@ CONFIGS = {
         'postprocess_class_agnostic': True
     },
     'v3-cls': {
-        'hash': None,  
+        'hash': None,
         'name': 'yolov8-cls.kaza.pt',
         'path': join(PWD, 'models', 'yolo', 'yolov8-cls.kaza.pt'),
         'thresh': 0.45,
