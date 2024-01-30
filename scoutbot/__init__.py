@@ -90,7 +90,7 @@ def fetch(pull=False, config=None):
     Raises:
         AssertionError: If any model cannot be fetched.
     """
-    if config == 'v3':
+    if config in ['v3', 'v3-cls']:
         loc.fetch(pull=pull, config=config)
     else:
         wic.fetch(pull=pull, config=None)
@@ -191,8 +191,16 @@ def pipeline(
 
 def pipeline_v3(
     filepath,
+    config,
     batched_detection_model=None,
-    loc_thresh=0.45
+    loc_thresh=0.45,
+    slice_height=512,
+    slice_width=512,
+    overlap_height_ratio=0.25,
+    overlap_width_ratio=0.25,
+    perform_standard_pred=False,
+    postprocess_class_agnostic=True
+
 ):
     """
     Run the ML pipeline on a given image filepath and return the detections
@@ -215,7 +223,7 @@ def pipeline_v3(
     # Run Localizer
 
     if batched_detection_model is None:
-        yolov8_model_path = loc.fetch(config='v3')
+        yolov8_model_path = loc.fetch(config=config)
 
         batched_detection_model = tile_batched.Yolov8DetectionModel(
             model_path=yolov8_model_path,
@@ -226,12 +234,12 @@ def pipeline_v3(
     det_result = tile_batched.get_sliced_prediction_batched(
         cv2.imread(filepath),
         batched_detection_model,
-        slice_height=512,
-        slice_width=512,
-        overlap_height_ratio=0.25,
-        overlap_width_ratio=0.25,
-        perform_standard_pred=False,
-        postprocess_class_agnostic=True
+        slice_height=slice_height,
+        slice_width=slice_width,
+        overlap_height_ratio=overlap_height_ratio,
+        overlap_width_ratio=overlap_width_ratio,
+        perform_standard_pred=perform_standard_pred,
+        postprocess_class_agnostic=postprocess_class_agnostic
     )
 
     # Postprocess detections for WIC
@@ -407,9 +415,16 @@ def batch(
 
 def batch_v3(
         filepaths,
-        loc_thresh=0.45
+        config,
+        loc_thresh=0.45,
+        slice_height=512,
+        slice_width=512,
+        overlap_height_ratio=0.25,
+        overlap_width_ratio=0.25,
+        perform_standard_pred=False,
+        postprocess_class_agnostic=True
 ):
-    yolov8_model_path = loc.fetch(config='v3')
+    yolov8_model_path = loc.fetch(config=config)
 
     batched_detection_model = tile_batched.Yolov8DetectionModel(
         model_path=yolov8_model_path,
@@ -420,7 +435,16 @@ def batch_v3(
     wic_list = []
     detects_list = []
     for filepath in filepaths:
-        wic_, detects = pipeline_v3(filepath, batched_detection_model)
+        wic_, detects = pipeline_v3(filepath, 
+                                    batched_detection_model,
+                                    loc_thresh=loc_thresh,
+                                    slice_height=slice_height,
+                                    slice_width=slice_width,
+                                    overlap_height_ratio=overlap_height_ratio,
+                                    overlap_width_ratio=overlap_width_ratio,
+                                    perform_standard_pred=perform_standard_pred,
+                                    postprocess_class_agnostic=postprocess_class_agnostic
+                                    )
         wic_list.append(wic_)
         detects_list.append(detects)
 

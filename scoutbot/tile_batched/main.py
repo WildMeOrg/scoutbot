@@ -247,7 +247,7 @@ class SliceImageResult:
 
 
 def slice_image(
-    image: Union[str],
+    image: Union[str, np.ndarray],
     slice_height: Optional[int] = None,
     slice_width: Optional[int] = None,
     overlap_height_ratio: float = 0.2,

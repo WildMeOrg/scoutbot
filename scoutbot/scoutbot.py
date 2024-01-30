@@ -25,7 +25,7 @@ def pipeline_filepath_validator(ctx, param, value):
     '--config',
     help='Which ML models to use for inference',
     default=None,
-    type=click.Choice(['phase1', 'mvp', 'old', 'new', 'v3']),
+    type=click.Choice(['phase1', 'mvp', 'old', 'new', 'v3', 'v3-cls']),
 )
 def fetch(config):
     """
@@ -45,7 +45,7 @@ def fetch(config):
     '--config',
     help='Which ML models to use for inference',
     default=None,
-    type=click.Choice(['phase1', 'mvp', 'old', 'new', 'v3']),
+    type=click.Choice(['phase1', 'mvp', 'old', 'new', 'v3', 'v3-cls']),
 )
 @click.option(
     '--output',
@@ -124,9 +124,18 @@ def pipeline(
     agg_thresh /= 100.0
     agg_nms_thresh /= 100.0
 
-    if config == 'v3':
+    if config in ['v3', 'v3-cls']:
         wic_, detects = scoutbot.pipeline_v3(
-            filepath
+            filepath,
+            config,
+            loc_thresh=loc.CONFIGS[config]['thresh'],
+            slice_height=loc.CONFIGS[config]['slice_height'],
+            slice_width=loc.CONFIGS[config]['slice_width'],
+            overlap_height_ratio=loc.CONFIGS[config]['overlap_height_ratio'],
+            overlap_width_ratio=loc.CONFIGS[config]['overlap_width_ratio'],
+            perform_standard_pred=loc.CONFIGS[config]['perform_standard_pred'],
+            postprocess_class_agnostic=loc.CONFIGS[config]['postprocess_class_agnostic']
+
         )
     else:
         wic_, detects = scoutbot.pipeline(
@@ -164,7 +173,7 @@ def pipeline(
     '--config',
     help='Which ML models to use for inference',
     default=None,
-    type=click.Choice(['phase1', 'mvp', 'old', 'new', 'v3']),
+    type=click.Choice(['phase1', 'mvp', 'old', 'new', 'v3', 'v3-cls']),
 )
 @click.option(
     '--output',
@@ -260,9 +269,18 @@ def batch(
 
     log.debug(f'Running batch on {len(filepaths)} files...')
 
-    if config == 'v3':
+    if config in ['v3', 'v3-cls']:
         wic_list, detects_list = scoutbot.batch_v3(
             filepaths,
+            config,
+            loc_thresh=loc.CONFIGS[config]['thresh'],
+            slice_height=loc.CONFIGS[config]['slice_height'],
+            slice_width=loc.CONFIGS[config]['slice_width'],
+            overlap_height_ratio=loc.CONFIGS[config]['overlap_height_ratio'],
+            overlap_width_ratio=loc.CONFIGS[config]['overlap_width_ratio'],
+            perform_standard_pred=loc.CONFIGS[config]['perform_standard_pred'],
+            postprocess_class_agnostic=loc.CONFIGS[config]['postprocess_class_agnostic']
+
         )
     else:
         wic_list, detects_list = scoutbot.batch(
