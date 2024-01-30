@@ -112,7 +112,7 @@ CONFIGS = {
         ],
     },
     'v3': {
-        'hash': None, 
+        'hash': None,
         'name': 'yolov8.kaza.pt',
         'path': join(PWD, 'models', 'yolo', 'yolov8.kaza.pt'),
         'thresh': 0.45,
