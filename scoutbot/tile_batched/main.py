@@ -43,7 +43,7 @@ class Yolov8DetectionModel(Yolov8DetectionModelBase):
             batch_images = images[i:i + batch_size]
             preds = self.model.predict(source=batch_images, verbose=False, device=self.device)
 
-        all_preds.extend(preds)
+            all_preds.extend(preds)
 
         prediction_result = [
             result.boxes.data[result.boxes.data[:, 4] >= self.confidence_threshold] for result in all_preds
@@ -247,7 +247,7 @@ class SliceImageResult:
 
 
 def slice_image(
-    image: Union[str],
+    image: Union[str, np.ndarray],
     slice_height: Optional[int] = None,
     slice_width: Optional[int] = None,
     overlap_height_ratio: float = 0.2,

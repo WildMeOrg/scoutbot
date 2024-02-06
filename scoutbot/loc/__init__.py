@@ -112,9 +112,28 @@ CONFIGS = {
         ],
     },
     'v3': {
-        'hash': None,  # 9e001aa3c10d05ba8a269103d3d358ceeb7d6f3bcc5758c1be4405ff743e0e90 #'46cbbccf922552703a1fe8a756544e43'
+        'hash': None,
         'name': 'yolov8.kaza.pt',
         'path': join(PWD, 'models', 'yolo', 'yolov8.kaza.pt'),
+        'thresh': 0.45,
+        'slice_height': 512,
+        'slice_width': 512,
+        'overlap_height_ratio': 0.25,
+        'overlap_width_ratio': 0.25,
+        'perform_standard_pred': False,
+        'postprocess_class_agnostic': True
+    },
+    'v3-cls': {
+        'hash': None,
+        'name': 'yolov8-cls.kaza.pt',
+        'path': join(PWD, 'models', 'yolo', 'yolov8-cls.kaza.pt'),
+        'thresh': 0.45,
+        'slice_height': 512,
+        'slice_width': 512,
+        'overlap_height_ratio': 0.25,
+        'overlap_width_ratio': 0.25,
+        'perform_standard_pred': False,
+        'postprocess_class_agnostic': True
     }
 }
 CONFIGS[None] = CONFIGS[DEFAULT_CONFIG]
