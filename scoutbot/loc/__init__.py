@@ -180,6 +180,8 @@ def fetch(pull=False, config=DEFAULT_CONFIG):
 
     log.debug(f'LOC Model: {onnx_model}')
 
+    print(onnx_model)
+
     return onnx_model
 
 
