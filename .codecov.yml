@@ -8,6 +8,7 @@ ignore:
   - "scoutbot/*/convert.mvp.py"
   - "scoutbot/scoutbot.py"
   - "scoutbot/loc/transforms"
+  - "scoutbot/scripts"
 
 coverage:
   status:
