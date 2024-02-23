@@ -113,8 +113,8 @@ CONFIGS = {
     },
     'v3': {
         'hash': None,
-        'name': 'yolov8.kaza.pt',
-        'path': join(PWD, 'models', 'yolo', 'yolov8.kaza.pt'),
+        'name': 'yolov8-onecls.kaza.pt',
+        'path': join(PWD, 'models', 'yolo', 'yolov8-onecls.kaza.pt'),
         'thresh': 0.45,
         'slice_height': 512,
         'slice_width': 512,
