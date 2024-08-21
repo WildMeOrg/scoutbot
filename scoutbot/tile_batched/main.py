@@ -26,6 +26,7 @@ POSTPROCESS_NAME_TO_CLASS = {
 
 DETECTOR_BATCH_SIZE = int(os.getenv('DETECTOR_BATCH_SIZE', 128))
 
+
 class Yolov8DetectionModel(Yolov8DetectionModelBase):
 
     def __init__(self, batch_size=None):
