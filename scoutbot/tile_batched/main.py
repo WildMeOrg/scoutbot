@@ -24,15 +24,21 @@ POSTPROCESS_NAME_TO_CLASS = {
     "LSNMS": LSNMSPostprocess,
 }
 
+DETECTOR_BATCH_SIZE = int(os.getenv('DETECTOR_BATCH_SIZE', 128))
 
 class Yolov8DetectionModel(Yolov8DetectionModelBase):
-    def perform_inference(self, images: List[np.ndarray], batch_size=128):
+
+    def __init__(self, batch_size=None):
+        self.batch_size = batch_size or int(os.getenv('DETECTOR_BATCH_SIZE', 128))
+
+    def perform_inference(self, images: List[np.ndarray], batch_size=None):
         """
         Prediction is performed using self.model and the prediction result is set to self._original_predictions.
         Args:
-            image: np.ndarray
-                A numpy array that contains the image to be predicted. 3 channel image should be in RGB order.
+            images: List[np.ndarray]
+                A list of numpy arrays that contain the images to be predicted. 3 channel images should be in RGB order.
         """
+        batch_size = batch_size or self.batch_size
 
         # Confirm model is loaded
         if self.model is None:
@@ -42,7 +48,6 @@ class Yolov8DetectionModel(Yolov8DetectionModelBase):
         for i in range(0, len(images), batch_size):
             batch_images = images[i:i + batch_size]
             preds = self.model.predict(source=batch_images, verbose=False, device=self.device)
-
             all_preds.extend(preds)
 
         prediction_result = [
