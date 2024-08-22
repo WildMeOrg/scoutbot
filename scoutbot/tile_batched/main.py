@@ -1,12 +1,11 @@
-import time
-import numpy as np
 import logging
 import os
-
+import time
 from typing import List, Optional, Union, Dict
 
-from sahi.prediction import ObjectPrediction
+import numpy as np
 
+from sahi.prediction import ObjectPrediction
 from sahi.postprocess.combine import (
     GreedyNMMPostprocess,
     LSNMSPostprocess,
@@ -14,7 +13,6 @@ from sahi.postprocess.combine import (
     NMSPostprocess,
     PostprocessPredictions,
 )
-
 from sahi.models.yolov8 import Yolov8DetectionModel as Yolov8DetectionModelBase
 
 POSTPROCESS_NAME_TO_CLASS = {
@@ -24,15 +22,32 @@ POSTPROCESS_NAME_TO_CLASS = {
     "LSNMS": LSNMSPostprocess,
 }
 
+DETECTOR_BATCH_SIZE = int(os.getenv('DETECTOR_BATCH_SIZE', 128))
+
 
 class Yolov8DetectionModel(Yolov8DetectionModelBase):
-    def perform_inference(self, images: List[np.ndarray], batch_size=128):
+
+    def __init__(self, *args, batch_size: Optional[int] = None, **kwargs):
         """
-        Prediction is performed using self.model and the prediction result is set to self._original_predictions.
+        Initializes the Yolov8DetectionModel with an optional batch size and additional arguments.
+
         Args:
-            image: np.ndarray
-                A numpy array that contains the image to be predicted. 3 channel image should be in RGB order.
+            *args: Positional arguments to be passed to the base class.
+            batch_size (Optional[int]): Batch size for inference.
+            **kwargs: Additional keyword arguments to be passed to the base class.
         """
+        self.batch_size = batch_size or DETECTOR_BATCH_SIZE
+        super().__init__(*args, **kwargs)
+
+    def perform_inference(self, images: List[np.ndarray], batch_size: Optional[int] = None):
+        """
+        Perform inference using the model and store predictions.
+
+        Args:
+            images (List[np.ndarray]): List of images as numpy arrays for prediction.
+            batch_size (Optional[int]): Batch size for inference, overrides class-level batch size if provided.
+        """
+        batch_size = batch_size or self.batch_size
 
         # Confirm model is loaded
         if self.model is None:
@@ -41,12 +56,16 @@ class Yolov8DetectionModel(Yolov8DetectionModelBase):
         all_preds = []
         for i in range(0, len(images), batch_size):
             batch_images = images[i:i + batch_size]
-            preds = self.model.predict(source=batch_images, verbose=False, device=self.device)
-
+            preds = self.model.predict(
+                source=batch_images,
+                verbose=False,
+                device=self.device
+            )
             all_preds.extend(preds)
 
         prediction_result = [
-            result.boxes.data[result.boxes.data[:, 4] >= self.confidence_threshold] for result in all_preds
+            result.boxes.data[result.boxes.data[:, 4] >= self.confidence_threshold]
+            for result in all_preds
         ]
 
         self._original_predictions = prediction_result
