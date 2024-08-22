@@ -30,7 +30,7 @@ class Yolov8DetectionModel(Yolov8DetectionModelBase):
     def __init__(self, *args, batch_size: Optional[int] = None, **kwargs):
         """
         Initializes the Yolov8DetectionModel with an optional batch size and additional arguments.
-        
+
         Args:
             *args: Positional arguments to be passed to the base class.
             batch_size (Optional[int]): Batch size for inference.
@@ -42,7 +42,7 @@ class Yolov8DetectionModel(Yolov8DetectionModelBase):
     def perform_inference(self, images: List[np.ndarray], batch_size: Optional[int] = None):
         """
         Perform inference using the model and store predictions.
-        
+
         Args:
             images (List[np.ndarray]): List of images as numpy arrays for prediction.
             batch_size (Optional[int]): Batch size for inference, overrides class-level batch size if provided.
@@ -57,14 +57,14 @@ class Yolov8DetectionModel(Yolov8DetectionModelBase):
         for i in range(0, len(images), batch_size):
             batch_images = images[i:i + batch_size]
             preds = self.model.predict(
-                source=batch_images, 
-                verbose=False, 
+                source=batch_images,
+                verbose=False,
                 device=self.device
             )
             all_preds.extend(preds)
 
         prediction_result = [
-            result.boxes.data[result.boxes.data[:, 4] >= self.confidence_threshold] 
+            result.boxes.data[result.boxes.data[:, 4] >= self.confidence_threshold]
             for result in all_preds
         ]
 
