@@ -1,4 +1,4 @@
-FROM nvidia/cuda:11.6.0-cudnn8-runtime-ubuntu20.04
+FROM nvidia/cuda:12.2.2-cudnn8-runtime-ubuntu20.04
 
 ENV GRADIO_SERVER_NAME=0.0.0.0
 
@@ -20,6 +20,6 @@ COPY ./ /code
 RUN pip3 install --no-cache-dir -r requirements.txt \
  && pip3 install -e . \
  && pip3 uninstall -y onnxruntime \
- && pip3 install onnxruntime-gpu
+ && pip3 install --no-cache-dir onnxruntime-gpu
 
 CMD python3 app2.py

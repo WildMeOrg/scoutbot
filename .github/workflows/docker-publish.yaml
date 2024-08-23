@@ -1,6 +1,6 @@
 name: Docker
 
-on:
+on: 
   pull_request:
     branches:
       - main
@@ -11,6 +11,7 @@ on:
       - v*
   schedule:
     - cron: '0 16 * * *' # Every day at 16:00 UTC (~09:00 PT)
+
 
 jobs:
   # Push container image to GitHub Packages and Docker Hub.
@@ -24,6 +25,15 @@ jobs:
       DOCKER_CLI_EXPERIMENTAL: enabled
 
     steps:
+      - name: Free Disk space
+        run: |
+             sudo swapoff -a
+             sudo rm -f /swapfile
+             sudo rm -rf /opt/hostedtoolcache
+             sudo apt clean
+             docker rmi $(docker image ls -aq)
+             df -h
+             
       - name: Checkout code
         uses: nschloe/action-cached-lfs-checkout@v1.1.3
         with:
@@ -42,12 +52,15 @@ jobs:
 
       - name: Available platforms
         run: echo ${{ steps.buildx.outputs.platforms }}
+        
+      - name: set default docker build version
+        run:  echo "IMAGE_TAG=nightly" >> $GITHUB_ENV   
 
       # Log into container registries
       - name: Login to DockerHub
         uses: docker/login-action@v1
         with:
-          username: wildmebot
+          username: wildmeorg
           password: ${{ secrets.WBIA_WILDMEBOT_DOCKER_HUB_TOKEN }}
 
       # Push tagged image (version tag + latest) to registries
@@ -80,10 +93,17 @@ jobs:
 
       # Also push latest image
       - name: Build Codex
-        if: ${{ github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags/v') }}
+        if: ${{ github.event_name == 'push'}}
         run: |
           docker buildx build \
               -t wildme/scoutbot:latest \
               --platform linux/amd64 \
               --push \
               .
+      - name: Trigger Scout Build
+        uses: peter-evans/repository-dispatch@v1
+        with:
+          token: ${{ secrets.GHCR_PAT  }}
+          repository: WildMeOrg/scout  # Adjust to the actual repository name
+          event-type: build-trigger  # You can choose any custom event type
+          
