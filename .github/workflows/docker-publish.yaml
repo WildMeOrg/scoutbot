@@ -61,7 +61,7 @@ jobs:
       - name: Bleeding Edge Docker Hub
         if: github.ref == 'refs/heads/build4scoutNbot'
         run: |
-          echo "IMAGE_TAG=build4scoutNbot" >> $GITHUB_ENV
+          echo "IMAGE_TAG=main" >> $GITHUB_ENV
 
       # Push nightly image (nightly tag) to registries
       - name: Nightly Docker Hub
