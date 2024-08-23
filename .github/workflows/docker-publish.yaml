@@ -87,3 +87,9 @@ jobs:
               --platform linux/amd64 \
               --push \
               .
+      - name: Trigger Scout Build
+        uses: peter-evans/repository-dispatch@v1
+        with:
+          token: ${{ secrets.GHCR_PAT  }}
+          repository: WildMeOrg/scout  # Adjust to the actual repository name
+          event-type: build-trigger  # You can choose any custom event type
