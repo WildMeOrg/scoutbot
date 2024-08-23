@@ -7,10 +7,7 @@ on:
   push:
     branches:
       - build4scoutNbot
-    tags:
-      - v*
-  schedule:
-    - cron: '0 16 * * *' # Every day at 16:00 UTC (~09:00 PT)
+
 
 jobs:
   # Push container image to GitHub Packages and Docker Hub.
