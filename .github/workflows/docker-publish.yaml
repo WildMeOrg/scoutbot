@@ -1,12 +1,6 @@
 name: Docker
 
-on:
-  pull_request:
-    branches:
-      - build4scoutNbot
-  push:
-    branches:
-      - build4scoutNbot
+on: push
 
 
 jobs:
