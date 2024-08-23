@@ -25,13 +25,6 @@ jobs:
       DOCKER_CLI_EXPERIMENTAL: enabled
 
     steps:
-      - name: Trigger Scout Build
-        uses: peter-evans/repository-dispatch@v1
-        with:
-          token: ${{ secrets.GHCR_PAT  }}
-          repository: WildMeOrg/scout  # Adjust to the actual repository name
-          event-type: build-trigger  # You can choose any custom event type
-          
       - name: Free Disk space
         run: |
              sudo swapoff -a
