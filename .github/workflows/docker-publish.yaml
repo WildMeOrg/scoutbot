@@ -52,6 +52,9 @@ jobs:
 
       - name: Available platforms
         run: echo ${{ steps.buildx.outputs.platforms }}
+        
+      - name: set default docker build version
+        run:  echo "IMAGE_TAG=nightly" >> $GITHUB_ENV   
 
       # Log into container registries
       - name: Login to DockerHub
