@@ -3,10 +3,10 @@ name: Docker
 on: 
   pull_request:
     branches:
-      - build4scoutNbot
+      - main
   push:
     branches:
-      - build4scoutNbot
+      - main
     tags:
       - v*
   schedule:
@@ -69,7 +69,7 @@ jobs:
 
       # Push bleeding-edge image (main tag) to registries
       - name: Bleeding Edge Docker Hub
-        if: github.ref == 'refs/heads/build4scoutNbot'
+        if: github.ref == 'refs/heads/main'
         run: |
           echo "IMAGE_TAG=main" >> $GITHUB_ENV
 
