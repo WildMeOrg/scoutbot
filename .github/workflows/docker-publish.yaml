@@ -25,6 +25,15 @@ jobs:
       DOCKER_CLI_EXPERIMENTAL: enabled
 
     steps:
+      - name: Free Disk space
+        run: |
+             sudo swapoff -a
+             sudo rm -f /swapfile
+             sudo rm -rf /opt/hostedtoolcache
+             sudo apt clean
+             docker rmi $(docker image ls -aq)
+             df -h
+             
       - name: Checkout code
         uses: nschloe/action-cached-lfs-checkout@v1.1.3
         with:
