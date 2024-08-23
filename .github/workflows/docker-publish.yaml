@@ -1,6 +1,16 @@
 name: Docker
 
-on: push
+on: 
+  pull_request:
+    branches:
+      - build4scoutNbot
+  push:
+    branches:
+      - build4scoutNbot
+    tags:
+      - v*
+  schedule:
+    - cron: '0 16 * * *' # Every day at 16:00 UTC (~09:00 PT)
 
 
 jobs:
