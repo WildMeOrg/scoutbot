@@ -183,8 +183,7 @@ The script uses Python's built-in logging functionality called ``logging``.  All
 Code Formatting
 ---------------
 
-It's recommended that you use ``pre-commit`` to ensure linting procedures are run
-on any code you write.  See `pre-commit.com <https://pre-commit.com/>`_ for more information.
+It's recommended that you use ``pre-commit`` to ensure linting procedures are run on any code you write.  See `pre-commit.com <https://pre-commit.com/>`_ for more information.
 
 Reference `pre-commit's installation instructions <https://pre-commit.com/#install>`_ for software installation on your OS/platform. After you have the software installed, run ``pre-commit install`` on the command line. Now every time you commit to this project's code base the linter procedures will automatically run over the changed files.  To run pre-commit on files preemtively from the command line use:
 
