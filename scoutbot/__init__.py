@@ -100,6 +100,7 @@ def fetch(pull=False, config=None):
 def pipeline(
     filepath,
     config=None,
+    backend_device='cuda:0',
     wic_thresh=wic.CONFIGS[None]['thresh'],
     loc_thresh=loc.CONFIGS[None]['thresh'],
     loc_nms_thresh=loc.CONFIGS[None]['nms'],
@@ -128,6 +129,7 @@ def pipeline(
         filepath (str): image filepath (relative or absolute)
         config (str or None, optional): the configuration to use, one of ``phase1``
             or ``mvp``.  Defaults to :obj:`None`.
+        backend_device (str): torch backend device.
         wic_thresh (float or None, optional): the confidence threshold for the WIC's
             predictions.  Defaults to the default configuration setting.
         loc_thresh (float or None, optional): the confidence threshold for the localizer's
@@ -193,6 +195,7 @@ def pipeline_v3(
     filepath,
     config,
     batched_detection_model=None,
+    backend_device='cuda:0',
     loc_thresh=0.45,
     slice_height=512,
     slice_width=512,
@@ -228,7 +231,7 @@ def pipeline_v3(
         batched_detection_model = tile_batched.Yolov8DetectionModel(
             model_path=yolov8_model_path,
             confidence_threshold=loc_thresh,
-            device='cuda:0'
+            device=backend_device
         )
 
     det_result = tile_batched.get_sliced_prediction_batched(
@@ -416,6 +419,7 @@ def batch(
 def batch_v3(
         filepaths,
         config,
+        backend_device,
         loc_thresh=0.45,
         slice_height=512,
         slice_width=512,
@@ -429,7 +433,7 @@ def batch_v3(
     batched_detection_model = tile_batched.Yolov8DetectionModel(
         model_path=yolov8_model_path,
         confidence_threshold=loc_thresh,
-        device='cuda:0'
+        device=backend_device
     )
 
     wic_list = []
@@ -438,6 +442,7 @@ def batch_v3(
         wic_, detects = pipeline_v3(filepath,
                                     config,
                                     batched_detection_model=batched_detection_model,
+                                    backend_device=backend_device,
                                     loc_thresh=loc_thresh,
                                     slice_height=slice_height,
                                     slice_width=slice_width,
