@@ -38,6 +38,7 @@ def predict(
     else:
         raise ValueError()
 
+    backend_device =  'cuda:0'
     wic_thresh /= 100.0
     loc_thresh /= 100.0
     loc_nms_thresh /= 100.0
@@ -55,6 +56,7 @@ def predict(
     wic_, detects = scoutbot.pipeline(
         filepath,
         config=config,
+        backend_device=backend_device,
         wic_thresh=wic_thresh,
         loc_thresh=loc_thresh,
         loc_nms_thresh=loc_nms_thresh,

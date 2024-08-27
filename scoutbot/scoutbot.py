@@ -54,6 +54,12 @@ def fetch(config):
     type=str,
 )
 @click.option(
+    '--backend_device', # torch backend device
+    help='Backend device type',
+    default='cuda:0',
+    type=click.Choice(['cuda:0', 'cuda', 'mps', 'cpu']),
+)
+@click.option(
     '--wic_thresh',
     help='Whole Image Classifier (WIC) confidence threshold',
     default=int(wic.CONFIGS[None]['thresh'] * 100),
@@ -87,6 +93,7 @@ def pipeline(
     filepath,
     config,
     output,
+    backend_device,
     wic_thresh,
     loc_thresh,
     loc_nms_thresh,
@@ -128,6 +135,7 @@ def pipeline(
         wic_, detects = scoutbot.pipeline_v3(
             filepath,
             config,
+            backend_device=backend_device,
             loc_thresh=loc.CONFIGS[config]['thresh'],
             slice_height=loc.CONFIGS[config]['slice_height'],
             slice_width=loc.CONFIGS[config]['slice_width'],
@@ -135,12 +143,12 @@ def pipeline(
             overlap_width_ratio=loc.CONFIGS[config]['overlap_width_ratio'],
             perform_standard_pred=loc.CONFIGS[config]['perform_standard_pred'],
             postprocess_class_agnostic=loc.CONFIGS[config]['postprocess_class_agnostic']
-
         )
     else:
         wic_, detects = scoutbot.pipeline(
             filepath,
             config=config,
+            backend_device=backend_device,
             wic_thresh=wic_thresh,
             loc_thresh=loc_thresh,
             loc_nms_thresh=loc_nms_thresh,
@@ -182,6 +190,12 @@ def pipeline(
     type=str,
 )
 @click.option(
+    '--backend_device', # torch backend device
+    help='Backend device type',
+    default='cuda:0',
+    type=click.Choice(['cuda:0', 'cuda', 'mps', 'cpu']),
+)
+@click.option(
     '--wic_thresh',
     help='Whole Image Classifier (WIC) confidence threshold',
     default=int(wic.CONFIGS[None]['thresh'] * 100),
@@ -215,6 +229,7 @@ def batch(
     filepaths,
     config,
     output,
+    backend_device,
     wic_thresh,
     loc_thresh,
     loc_nms_thresh,
@@ -273,6 +288,7 @@ def batch(
         wic_list, detects_list = scoutbot.batch_v3(
             filepaths,
             config,
+            backend_device=backend_device,
             loc_thresh=loc.CONFIGS[config]['thresh'],
             slice_height=loc.CONFIGS[config]['slice_height'],
             slice_width=loc.CONFIGS[config]['slice_width'],
@@ -286,6 +302,7 @@ def batch(
         wic_list, detects_list = scoutbot.batch(
             filepaths,
             config=config,
+            backend_device=backend_device,
             wic_thresh=wic_thresh,
             loc_thresh=loc_thresh,
             loc_nms_thresh=loc_nms_thresh,
