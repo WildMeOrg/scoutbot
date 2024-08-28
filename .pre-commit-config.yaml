@@ -22,7 +22,7 @@ repos:
         entry: brunette --config=setup.cfg
         language: system
         types: [python]
-  - repo: https://gitlab.com/pycqa/flake8
+  - repo: https://github.com/pycqa/flake8
     rev: 3.8.3
     hooks:
       - id: flake8
