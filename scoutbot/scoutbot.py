@@ -19,20 +19,66 @@ def pipeline_filepath_validator(ctx, param, value):
         ctx.exit()
     return value
 
+model_option = [
+    click.option(
+        '--config',
+        help='Which ML models to use for inference',
+        default=None,
+        type=click.Choice(['phase1', 'mvp', 'old', 'new', 'v3', 'v3-cls']),
+    ),
+]
 
-@click.command('fetch')
-@click.option(
-    '--config',
-    help='Which ML models to use for inference',
-    default=None,
-    type=click.Choice(['phase1', 'mvp', 'old', 'new', 'v3', 'v3-cls']),
-)
-def fetch(config):
-    """
-    Fetch the required machine learning ONNX models for the WIC and LOC
-    """
-    scoutbot.fetch(config=config)
+shared_options = [
+    click.option(
+        '--output',
+        help='Path to output JSON (if unspecified, results are printed to screen)',
+        default=None,
+        type=str,
+    ),
+    click.option(
+        '--backend_device',  # torch backend device
+        help='Backend device type',
+        default='cuda:0',
+        type=click.Choice(['cuda:0', 'cuda', 'mps', 'cpu']),
+    ),
+    click.option(
+        '--wic_thresh',
+        help='Whole Image Classifier (WIC) confidence threshold',
+        default=int(wic.CONFIGS[None]['thresh'] * 100),
+        type=click.IntRange(0, 100, clamp=True),
+    ),
+    click.option(
+        '--loc_thresh',
+        help='Localizer (LOC) confidence threshold',
+        default=int(loc.CONFIGS[None]['thresh'] * 100),
+        type=click.IntRange(0, 100, clamp=True),
+    ),
+    click.option(
+        '--loc_nms_thresh',
+        help='Localizer (LOC) non-maximum suppression (NMS) threshold',
+        default=int(loc.CONFIGS[None]['nms'] * 100),
+        type=click.IntRange(0, 100, clamp=True),
+    ),
+    click.option(
+        '--agg_thresh',
+        help='Aggregation (AGG) confidence threshold',
+        default=int(agg.CONFIGS[None]['thresh'] * 100),
+        type=click.IntRange(0, 100, clamp=True),
+    ),
+    click.option(
+        '--agg_nms_thresh',
+        help='Aggregation (AGG) non-maximum suppression (NMS) threshold',
+        default=int(agg.CONFIGS[None]['nms'] * 100),
+        type=click.IntRange(0, 100, clamp=True),
+    ),
+]
 
+def add_options(options):
+    def _add_options(func):
+        for option in reversed(options):
+            func = option(func)
+        return func
+    return _add_options
 
 @click.command('pipeline')
 @click.argument(
@@ -41,54 +87,8 @@ def fetch(config):
     type=str,
     callback=pipeline_filepath_validator,
 )
-@click.option(
-    '--config',
-    help='Which ML models to use for inference',
-    default=None,
-    type=click.Choice(['phase1', 'mvp', 'old', 'new', 'v3', 'v3-cls']),
-)
-@click.option(
-    '--output',
-    help='Path to output JSON (if unspecified, results are printed to screen)',
-    default=None,
-    type=str,
-)
-@click.option(
-    '--backend_device', # torch backend device
-    help='Backend device type',
-    default='cuda:0',
-    type=click.Choice(['cuda:0', 'cuda', 'mps', 'cpu']),
-)
-@click.option(
-    '--wic_thresh',
-    help='Whole Image Classifier (WIC) confidence threshold',
-    default=int(wic.CONFIGS[None]['thresh'] * 100),
-    type=click.IntRange(0, 100, clamp=True),
-)
-@click.option(
-    '--loc_thresh',
-    help='Localizer (LOC) confidence threshold',
-    default=int(loc.CONFIGS[None]['thresh'] * 100),
-    type=click.IntRange(0, 100, clamp=True),
-)
-@click.option(
-    '--loc_nms_thresh',
-    help='Localizer (LOC) non-maximum suppression (NMS) threshold',
-    default=int(loc.CONFIGS[None]['nms'] * 100),
-    type=click.IntRange(0, 100, clamp=True),
-)
-@click.option(
-    '--agg_thresh',
-    help='Aggregation (AGG) confidence threshold',
-    default=int(agg.CONFIGS[None]['thresh'] * 100),
-    type=click.IntRange(0, 100, clamp=True),
-)
-@click.option(
-    '--agg_nms_thresh',
-    help='Aggregation (AGG) non-maximum suppression (NMS) threshold',
-    default=int(agg.CONFIGS[None]['nms'] * 100),
-    type=click.IntRange(0, 100, clamp=True),
-)
+@add_options(model_option)
+@add_options(shared_options)
 def pipeline(
     filepath,
     config,
@@ -170,61 +170,14 @@ def pipeline(
     else:
         print(ut.repr3(data))
 
-
 @click.command('batch')
 @click.argument(
     'filepaths',
     nargs=-1,
     type=str,
 )
-@click.option(
-    '--config',
-    help='Which ML models to use for inference',
-    default=None,
-    type=click.Choice(['phase1', 'mvp', 'old', 'new', 'v3', 'v3-cls']),
-)
-@click.option(
-    '--output',
-    help='Path to output JSON (if unspecified, results are printed to screen)',
-    default=None,
-    type=str,
-)
-@click.option(
-    '--backend_device', # torch backend device
-    help='Backend device type',
-    default='cuda:0',
-    type=click.Choice(['cuda:0', 'cuda', 'mps', 'cpu']),
-)
-@click.option(
-    '--wic_thresh',
-    help='Whole Image Classifier (WIC) confidence threshold',
-    default=int(wic.CONFIGS[None]['thresh'] * 100),
-    type=click.IntRange(0, 100, clamp=True),
-)
-@click.option(
-    '--loc_thresh',
-    help='Localizer (LOC) confidence threshold',
-    default=int(loc.CONFIGS[None]['thresh'] * 100),
-    type=click.IntRange(0, 100, clamp=True),
-)
-@click.option(
-    '--loc_nms_thresh',
-    help='Localizer (LOC) non-maximum suppression (NMS) threshold',
-    default=int(loc.CONFIGS[None]['nms'] * 100),
-    type=click.IntRange(0, 100, clamp=True),
-)
-@click.option(
-    '--agg_thresh',
-    help='Aggregation (AGG) confidence threshold',
-    default=int(agg.CONFIGS[None]['thresh'] * 100),
-    type=click.IntRange(0, 100, clamp=True),
-)
-@click.option(
-    '--agg_nms_thresh',
-    help='Aggregation (AGG) non-maximum suppression (NMS) threshold',
-    default=int(agg.CONFIGS[None]['nms'] * 100),
-    type=click.IntRange(0, 100, clamp=True),
-)
+@add_options(model_option)
+@add_options(shared_options)
 def batch(
     filepaths,
     config,
@@ -325,6 +278,13 @@ def batch(
     else:
         print(ut.repr3(data))
 
+@click.command('fetch')
+@add_options(model_option)
+def fetch(config):
+    """
+    Fetch the required machine learning ONNX models for the WIC and LOC
+    """
+    scoutbot.fetch(config=config)
 
 @click.command('example')
 def example():
@@ -333,7 +293,6 @@ def example():
     """
     scoutbot.example()
 
-
 @click.group()
 def cli():
     """
@@ -341,12 +300,10 @@ def cli():
     """
     pass
 
-
-cli.add_command(fetch)
 cli.add_command(pipeline)
 cli.add_command(batch)
+cli.add_command(fetch)
 cli.add_command(example)
-
 
 if __name__ == '__main__':
     cli()
