@@ -274,6 +274,7 @@ def pipeline_v3(
 def batch(
     filepaths,
     config=None,
+    backend_device='cuda:0',
     wic_thresh=wic.CONFIGS[None]['thresh'],
     loc_thresh=loc.CONFIGS[None]['thresh'],
     loc_nms_thresh=loc.CONFIGS[None]['nms'],
