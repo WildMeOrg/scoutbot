@@ -19,6 +19,7 @@ def pipeline_filepath_validator(ctx, param, value):
         ctx.exit()
     return value
 
+
 model_option = [
     click.option(
         '--config',
@@ -73,12 +74,15 @@ shared_options = [
     ),
 ]
 
+
 def add_options(options):
     def _add_options(func):
         for option in reversed(options):
             func = option(func)
         return func
+
     return _add_options
+
 
 @click.command('pipeline')
 @click.argument(
@@ -90,15 +94,15 @@ def add_options(options):
 @add_options(model_option)
 @add_options(shared_options)
 def pipeline(
-    filepath,
-    config,
-    output,
-    backend_device,
-    wic_thresh,
-    loc_thresh,
-    loc_nms_thresh,
-    agg_thresh,
-    agg_nms_thresh,
+        filepath,
+        config,
+        output,
+        backend_device,
+        wic_thresh,
+        loc_thresh,
+        loc_nms_thresh,
+        agg_thresh,
+        agg_nms_thresh,
 ):
     """
     Run the ScoutBot pipeline on an input image filepath.  An example output of the JSON
@@ -170,6 +174,7 @@ def pipeline(
     else:
         print(ut.repr3(data))
 
+
 @click.command('batch')
 @click.argument(
     'filepaths',
@@ -179,15 +184,15 @@ def pipeline(
 @add_options(model_option)
 @add_options(shared_options)
 def batch(
-    filepaths,
-    config,
-    output,
-    backend_device,
-    wic_thresh,
-    loc_thresh,
-    loc_nms_thresh,
-    agg_thresh,
-    agg_nms_thresh,
+        filepaths,
+        config,
+        output,
+        backend_device,
+        wic_thresh,
+        loc_thresh,
+        loc_nms_thresh,
+        agg_thresh,
+        agg_nms_thresh,
 ):
     """
     Run the ScoutBot pipeline in batch on a list of input image filepaths.
@@ -278,6 +283,7 @@ def batch(
     else:
         print(ut.repr3(data))
 
+
 @click.command('fetch')
 @add_options(model_option)
 def fetch(config):
@@ -286,6 +292,7 @@ def fetch(config):
     """
     scoutbot.fetch(config=config)
 
+
 @click.command('example')
 def example():
     """
@@ -293,12 +300,14 @@ def example():
     """
     scoutbot.example()
 
+
 @click.group()
 def cli():
     """
     ScoutBot CLI
     """
     pass
+
 
 cli.add_command(pipeline)
 cli.add_command(batch)
