@@ -94,15 +94,15 @@ def add_options(options):
 @add_options(model_option)
 @add_options(shared_options)
 def pipeline(
-        filepath,
-        config,
-        output,
-        backend_device,
-        wic_thresh,
-        loc_thresh,
-        loc_nms_thresh,
-        agg_thresh,
-        agg_nms_thresh,
+    filepath,
+    config,
+    output,
+    backend_device,
+    wic_thresh,
+    loc_thresh,
+    loc_nms_thresh,
+    agg_thresh,
+    agg_nms_thresh,
 ):
     """
     Run the ScoutBot pipeline on an input image filepath.  An example output of the JSON
@@ -146,7 +146,7 @@ def pipeline(
             overlap_height_ratio=loc.CONFIGS[config]['overlap_height_ratio'],
             overlap_width_ratio=loc.CONFIGS[config]['overlap_width_ratio'],
             perform_standard_pred=loc.CONFIGS[config]['perform_standard_pred'],
-            postprocess_class_agnostic=loc.CONFIGS[config]['postprocess_class_agnostic']
+            postprocess_class_agnostic=loc.CONFIGS[config]['postprocess_class_agnostic'],
         )
     else:
         wic_, detects = scoutbot.pipeline(
@@ -184,15 +184,15 @@ def pipeline(
 @add_options(model_option)
 @add_options(shared_options)
 def batch(
-        filepaths,
-        config,
-        output,
-        backend_device,
-        wic_thresh,
-        loc_thresh,
-        loc_nms_thresh,
-        agg_thresh,
-        agg_nms_thresh,
+    filepaths,
+    config,
+    output,
+    backend_device,
+    wic_thresh,
+    loc_thresh,
+    loc_nms_thresh,
+    agg_thresh,
+    agg_nms_thresh,
 ):
     """
     Run the ScoutBot pipeline in batch on a list of input image filepaths.
@@ -253,8 +253,7 @@ def batch(
             overlap_height_ratio=loc.CONFIGS[config]['overlap_height_ratio'],
             overlap_width_ratio=loc.CONFIGS[config]['overlap_width_ratio'],
             perform_standard_pred=loc.CONFIGS[config]['perform_standard_pred'],
-            postprocess_class_agnostic=loc.CONFIGS[config]['postprocess_class_agnostic']
-
+            postprocess_class_agnostic=loc.CONFIGS[config]['postprocess_class_agnostic'],
         )
     else:
         wic_list, detects_list = scoutbot.batch(

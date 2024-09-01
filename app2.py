@@ -38,7 +38,7 @@ def predict(
     else:
         raise ValueError()
 
-    backend_device =  'cuda:0'
+    backend_device = 'cuda:0'
     wic_thresh /= 100.0
     loc_thresh /= 100.0
     loc_nms_thresh /= 100.0
