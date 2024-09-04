@@ -38,7 +38,7 @@ shared_options = [
     ),
     click.option(
         '--backend_device',  # torch backend device
-        help='Backend device type',
+        help='Specifies the device for inference (see YOLO and PyTorch documentation for more information).',
         default='cuda:0',
         type=click.Choice(['cuda:0', 'cuda', 'mps', 'cpu']),
     ),
