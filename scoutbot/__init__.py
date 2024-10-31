@@ -100,6 +100,7 @@ def fetch(pull=False, config=None):
 def pipeline(
     filepath,
     config=None,
+    backend_device='cuda:0',
     wic_thresh=wic.CONFIGS[None]['thresh'],
     loc_thresh=loc.CONFIGS[None]['thresh'],
     loc_nms_thresh=loc.CONFIGS[None]['nms'],
@@ -128,6 +129,7 @@ def pipeline(
         filepath (str): image filepath (relative or absolute)
         config (str or None, optional): the configuration to use, one of ``phase1``
             or ``mvp``.  Defaults to :obj:`None`.
+        backend_device (str): torch backend device.
         wic_thresh (float or None, optional): the confidence threshold for the WIC's
             predictions.  Defaults to the default configuration setting.
         loc_thresh (float or None, optional): the confidence threshold for the localizer's
@@ -193,14 +195,14 @@ def pipeline_v3(
     filepath,
     config,
     batched_detection_model=None,
+    backend_device='cuda:0',
     loc_thresh=0.45,
     slice_height=512,
     slice_width=512,
     overlap_height_ratio=0.25,
     overlap_width_ratio=0.25,
     perform_standard_pred=False,
-    postprocess_class_agnostic=True
-
+    postprocess_class_agnostic=True,
 ):
     """
     Run the ML pipeline on a given image filepath and return the detections
@@ -228,7 +230,7 @@ def pipeline_v3(
         batched_detection_model = tile_batched.Yolov8DetectionModel(
             model_path=yolov8_model_path,
             confidence_threshold=loc_thresh,
-            device='cuda:0'
+            device=backend_device,
         )
 
     det_result = tile_batched.get_sliced_prediction_batched(
@@ -239,13 +241,15 @@ def pipeline_v3(
         overlap_height_ratio=overlap_height_ratio,
         overlap_width_ratio=overlap_width_ratio,
         perform_standard_pred=perform_standard_pred,
-        postprocess_class_agnostic=postprocess_class_agnostic
+        postprocess_class_agnostic=postprocess_class_agnostic,
     )
 
     # Postprocess detections for WIC
     coco_prediction_list = []
     for object_prediction in det_result.object_prediction_list:
-        coco_prediction_list.append(object_prediction.to_coco_prediction(image_id=None).json)
+        coco_prediction_list.append(
+            object_prediction.to_coco_prediction(image_id=None).json
+        )
 
     wic_score = max([item['score'] for item in coco_prediction_list], default=0)
 
@@ -271,6 +275,7 @@ def pipeline_v3(
 def batch(
     filepaths,
     config=None,
+    backend_device='cuda:0',
     wic_thresh=wic.CONFIGS[None]['thresh'],
     loc_thresh=loc.CONFIGS[None]['thresh'],
     loc_nms_thresh=loc.CONFIGS[None]['nms'],
@@ -414,38 +419,41 @@ def batch(
 
 
 def batch_v3(
-        filepaths,
-        config,
-        loc_thresh=0.45,
-        slice_height=512,
-        slice_width=512,
-        overlap_height_ratio=0.25,
-        overlap_width_ratio=0.25,
-        perform_standard_pred=False,
-        postprocess_class_agnostic=True
+    filepaths,
+    config,
+    backend_device,
+    loc_thresh=0.45,
+    slice_height=512,
+    slice_width=512,
+    overlap_height_ratio=0.25,
+    overlap_width_ratio=0.25,
+    perform_standard_pred=False,
+    postprocess_class_agnostic=True,
 ):
     yolov8_model_path = loc.fetch(config=config)
 
     batched_detection_model = tile_batched.Yolov8DetectionModel(
         model_path=yolov8_model_path,
         confidence_threshold=loc_thresh,
-        device='cuda:0'
+        device=backend_device,
     )
 
     wic_list = []
     detects_list = []
     for filepath in filepaths:
-        wic_, detects = pipeline_v3(filepath,
-                                    config,
-                                    batched_detection_model=batched_detection_model,
-                                    loc_thresh=loc_thresh,
-                                    slice_height=slice_height,
-                                    slice_width=slice_width,
-                                    overlap_height_ratio=overlap_height_ratio,
-                                    overlap_width_ratio=overlap_width_ratio,
-                                    perform_standard_pred=perform_standard_pred,
-                                    postprocess_class_agnostic=postprocess_class_agnostic
-                                    )
+        wic_, detects = pipeline_v3(
+            filepath,
+            config,
+            batched_detection_model=batched_detection_model,
+            backend_device=backend_device,
+            loc_thresh=loc_thresh,
+            slice_height=slice_height,
+            slice_width=slice_width,
+            overlap_height_ratio=overlap_height_ratio,
+            overlap_width_ratio=overlap_width_ratio,
+            perform_standard_pred=perform_standard_pred,
+            postprocess_class_agnostic=postprocess_class_agnostic,
+        )
         wic_list.append(wic_)
         detects_list.append(detects)
 
