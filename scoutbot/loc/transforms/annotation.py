@@ -137,7 +137,7 @@ class Annotation(b.Box):
     def __str__(self):
         """Pretty print"""
         string = 'Annotation {'
-        string += f'\'{self.class_label}\'{"" if self.object_id is None else " "+str(self.object_id)}, '
+        string += f'\'{self.class_label}\'{"" if self.object_id is None else " " + str(self.object_id)}, '
         string += f'[{int(self.x_top_left)}, {int(self.y_top_left)}, {int(self.width)}, {int(self.height)}]'
         if self.difficult:
             string += ', difficult'
@@ -148,12 +148,12 @@ class Annotation(b.Box):
         if self.ignore:
             string += ', ignore'
         if self.truncated:
-            string += f', truncated {self.truncated_fraction*100}%'
+            string += f', truncated {self.truncated_fraction * 100}%'
         if self.occluded:
             if self.occluded_fraction == 1.0:
                 string += f', occluded [{int(self.visible_x_top_left)}, {int(self.visible_y_top_left)}, {int(self.visible_width)}, {int(self.visible_height)}]'
             else:
-                string += f', occluded {self.occluded_fraction*100}%'
+                string += f', occluded {self.occluded_fraction * 100}%'
         return string + '}'
 
 

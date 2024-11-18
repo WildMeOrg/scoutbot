@@ -12,7 +12,7 @@ jobs:
       fail-fast: false
       matrix:
         # Use the same Python version used the Dockerfile
-        python-version: [3.9]
+        python-version: [3.x]
 
     env:
       OS: ubuntu-latest
@@ -27,7 +27,7 @@ jobs:
           exclude: "scoutbot/*/models/pytorch/"
 
       - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v5
         with:
           python-version: ${{ matrix.python-version }}
 
@@ -54,7 +54,7 @@ jobs:
           coverage xml
 
       - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v1.2.1
+        uses: codecov/codecov-action@v4
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: ./coverage/coverage.xml
