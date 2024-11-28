@@ -299,6 +299,13 @@ def example():
     """
     scoutbot.example()
 
+@click.command('get_classes')
+def get_classes():
+    """
+    Run a test of the pipeline on an example image with the default configuration.
+    """
+    classes = scoutbot.get_classes()
+    print(ut.repr3(classes))
 
 @click.group()
 def cli():
@@ -312,6 +319,7 @@ cli.add_command(pipeline)
 cli.add_command(batch)
 cli.add_command(fetch)
 cli.add_command(example)
+cli.add_command(get_classes)
 
 if __name__ == '__main__':
     cli()
