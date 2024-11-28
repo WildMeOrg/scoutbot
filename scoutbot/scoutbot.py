@@ -29,13 +29,16 @@ model_option = [
     ),
 ]
 
-shared_options = [
+output_option = [
     click.option(
         '--output',
         help='Path to output JSON (if unspecified, results are printed to screen)',
         default=None,
         type=str,
     ),
+]
+
+shared_options = [
     click.option(
         '--backend_device',  # torch backend device
         help='Specifies the device for inference (see YOLO and PyTorch documentation for more information).',
@@ -93,6 +96,7 @@ def add_options(options):
 )
 @add_options(model_option)
 @add_options(shared_options)
+@add_options(output_option)
 def pipeline(
     filepath,
     config,
@@ -183,6 +187,7 @@ def pipeline(
 )
 @add_options(model_option)
 @add_options(shared_options)
+@add_options(output_option)
 def batch(
     filepaths,
     config,
@@ -301,12 +306,18 @@ def example():
 
 
 @click.command('get_classes')
-def get_classes():
+@add_options(output_option)
+def get_classes(output):
     """
     Run a test of the pipeline on an example image with the default configuration.
     """
     classes = scoutbot.get_classes()
-    print(ut.repr3(classes))
+    log.debug('Outputting classes list...')
+    if output:
+        with open(output, 'w') as outfile:
+            json.dump(classes, outfile)
+    else:
+        print(ut.repr3(classes))
 
 
 @click.group()
