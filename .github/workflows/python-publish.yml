@@ -59,6 +59,7 @@ jobs:
       - uses: actions/upload-artifact@v4
         with:
           path: ./dist/*.tar.gz
+          overwrite: true
 
   test_wheel:
     needs: [build_wheels, build_sdist]
