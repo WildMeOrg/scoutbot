@@ -62,6 +62,7 @@ QUIET = not utils.VERBOSE
 
 
 from scoutbot import agg, loc, tile, wic, tile_batched  # NOQA
+from scoutbot.loc import CONFIGS as LOC_CONFIGS # NOQA
 
 # from tile_batched.models import Yolov8DetectionModel
 # from tile_batched import get_sliced_prediction_batched
@@ -458,6 +459,26 @@ def batch_v3(
         detects_list.append(detects)
 
     return wic_list, detects_list
+
+
+def get_classes():
+    classes = set()
+    for config in ['v3', 'v3-cls']:
+        yolov8_model_path = loc.fetch(config=config)
+        model = tile_batched.Yolov8DetectionModel(
+            model_path=yolov8_model_path,
+            confidence_threshold=0.5,
+            device='cpu',
+        )
+        model_classes = list(model.category_names)
+        classes.update(model_classes)
+
+    for config in ['phase1', 'mvp']:
+        model_classes = LOC_CONFIGS[config]['classes']
+        classes.update(model_classes)
+
+    classes = list(classes)
+    return classes
 
 
 def example():
