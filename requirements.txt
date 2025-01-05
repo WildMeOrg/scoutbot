@@ -16,4 +16,5 @@ sphinx-click
 torch
 torchvision
 tqdm
-ultralytics
+ultralytics==8.2.*
+wbia-utool
