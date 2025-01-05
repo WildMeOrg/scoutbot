@@ -34,9 +34,9 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install -r requirements.txt
-          pip install -r requirements.optional.txt
-          pip install pytest pytest-cov pytest-random-order sahi[full]
+          pip3 install -r requirements.txt
+          pip3 install -r requirements.optional.txt
+          pip3 install pytest pytest-cov pytest-random-order sahi[full]
           
       - name: Lint with flake8
         run: |
