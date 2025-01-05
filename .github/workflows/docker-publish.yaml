@@ -31,7 +31,13 @@ jobs:
              sudo rm -f /swapfile
              sudo rm -rf /opt/hostedtoolcache
              sudo apt clean
-             docker rmi $(docker image ls -aq)
+             #docker rmi $(docker image ls -aq)
+             # Remove Docker images if any exist
+             if [ "$(docker image ls -aq)" ]; then
+                docker rmi $(docker image ls -aq)
+             else
+                echo "No Docker images to remove."
+             fi
              df -h
 
       - name: Checkout code
