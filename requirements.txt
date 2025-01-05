@@ -11,7 +11,7 @@ opencv-python-headless==4.7.*
 Pillow
 pooch==1.8.*
 rich
-sahi
+sahi==0.11.12
 sphinx-click
 torch
 torchvision
