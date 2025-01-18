@@ -3,22 +3,26 @@ FROM nvidia/cuda:12.2.2-cudnn8-runtime-ubuntu20.04
 # Set environment variables
 ENV GRADIO_SERVER_NAME=0.0.0.0
 ENV GRADIO_SERVER_PORT=7860
-ENV PATH="/root/.cargo/bin:$PATH"  # Highlighted: Added Rust's bin directory to PATH
+#  Added Rust's bin directory to PATH
+ENV PATH="/root/.cargo/bin:$PATH" 
 
 # Install apt packages
+# Added curl for Rust installation
+# Added build tools for compiling extensions
 RUN set -ex \
  && apt-get update \
  && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
         python3-dev \
         python3-pip \
-        curl \  #  Added curl for Rust installation
-        build-essential \  # Added build tools for compiling extensions
+        curl \ 
+        build-essential \  
  && rm -rf /var/cache/apt \
  && rm -rf /var/lib/apt/lists/*
 
 # Install Rust toolchain as the docker build is failing due to missing Rust Tool Chain
+# Verify Rust installation
 RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y \
- && rustc --version  # Verify Rust installation
+ && rustc --version 
 
 WORKDIR /code
 
