@@ -3,19 +3,16 @@ name: Docker
 on:
   pull_request:
     branches:
-      - main
+      - docker-build-fix-011825
   push:
     branches:
-      - main
+      - docker-build-fix-011825
     tags:
       - v*
   schedule:
     - cron: '0 16 * * *' # Every day at 16:00 UTC (~09:00 PT)
 
-
 jobs:
-  # Push container image to GitHub Packages and Docker Hub.
-  # See also https://docs.docker.com/docker-hub/builds/
   deploy:
     name: Docker image build
     runs-on: ubuntu-latest
@@ -31,8 +28,6 @@ jobs:
              sudo rm -f /swapfile
              sudo rm -rf /opt/hostedtoolcache
              sudo apt clean
-             #docker rmi $(docker image ls -aq)
-             # Remove Docker images if any exist
              if [ "$(docker image ls -aq)" ]; then
                 docker rmi $(docker image ls -aq)
              else
@@ -59,8 +54,8 @@ jobs:
       - name: Available platforms
         run: echo ${{ steps.buildx.outputs.platforms }}
 
-      - name: set default docker build version
-        run:  echo "IMAGE_TAG=nightly" >> $GITHUB_ENV
+      - name: Set default Docker build version
+        run: echo "IMAGE_TAG=nightly" >> $GITHUB_ENV
 
       # Log into container registries
       - name: Login to DockerHub
@@ -69,47 +64,48 @@ jobs:
           username: wildmeorg
           password: ${{ secrets.WBIA_WILDMEBOT_DOCKER_HUB_TOKEN }}
 
-      # Push tagged image (version tag + latest) to registries
+      # Push tagged image to registries
       - name: Tagged Docker Hub
         if: ${{ github.event_name == 'push' && startsWith(github.event.ref, 'refs/tags/v') }}
         run: |
           VERSION=$(echo ${GITHUB_REF} | sed 's#.*/v##')
           echo "IMAGE_TAG=${VERSION}" >> $GITHUB_ENV
 
-      # Push bleeding-edge image (main tag) to registries
+      # Push bleeding-edge image to registries
       - name: Bleeding Edge Docker Hub
         if: github.ref == 'refs/heads/main'
-        run: |
-          echo "IMAGE_TAG=main" >> $GITHUB_ENV
+        run: echo "IMAGE_TAG=main" >> $GITHUB_ENV
 
-      # Push nightly image (nightly tag) to registries
+      # Push nightly image to registries
       - name: Nightly Docker Hub
         if: github.event_name == 'schedule'
-        run: |
-          echo "IMAGE_TAG=nightly" >> $GITHUB_ENV
+        run: echo "IMAGE_TAG=nightly" >> $GITHUB_ENV
 
-      # Build images
+      # Build and push images
       - name: Build Codex
         run: |
           docker buildx build \
               -t wildme/scoutbot:${{ env.IMAGE_TAG }} \
               --platform linux/amd64 \
               --push \
+              --cache-from=type=local,src=/tmp/.buildx-cache \
+              --cache-to=type=local,dest=/tmp/.buildx-cache \
               .
 
-      # Also push latest image
-      - name: Build Codex
+      - name: Also push latest image
         if: ${{ github.event_name == 'push'}}
         run: |
           docker buildx build \
               -t wildme/scoutbot:latest \
               --platform linux/amd64 \
               --push \
+              --cache-from=type=local,src=/tmp/.buildx-cache \
+              --cache-to=type=local,dest=/tmp/.buildx-cache \
               .
+
       - name: Trigger Scout Build
         uses: peter-evans/repository-dispatch@v3
         with:
-          token: ${{ secrets.GHCR_PAT  }}
-          repository: WildMeOrg/scout  # Adjust to the actual repository name
-          event-type: build-trigger  # You can choose any custom event type
-
+          token: ${{ secrets.GHCR_PAT }}
+          repository: WildMeOrg/scout
+          event-type: build-trigger
