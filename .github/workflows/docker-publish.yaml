@@ -3,10 +3,10 @@ name: Docker
 on:
   pull_request:
     branches:
-      - docker-build-fix-011825
+      - main
   push:
     branches:
-      - docker-build-fix-011825
+      - main
     tags:
       - v*
   schedule:
