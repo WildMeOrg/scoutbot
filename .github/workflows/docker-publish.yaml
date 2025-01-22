@@ -82,7 +82,7 @@ jobs:
         run: echo "IMAGE_TAG=nightly" >> $GITHUB_ENV
 
       # Build and push images
-      - name: Build Codex
+      - name: Build Scoutbot
         run: |
           docker buildx build \
               -t wildme/scoutbot:${{ env.IMAGE_TAG }} \
