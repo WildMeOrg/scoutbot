@@ -7,7 +7,7 @@ import torch
 import torchvision
 import utool as ut
 
-BATCH_SIZE = int(os.getenv('WIC_BATCH_SIZE', 256))
+BATCH_SIZE = int(os.getenv('WIC_BATCH_SIZE', 160))
 INPUT_SIZE = 224
 
 
