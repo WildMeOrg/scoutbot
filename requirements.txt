@@ -2,14 +2,14 @@ click
 codecov
 coverage
 cryptography
-dill==0.3.7
+dill==0.3.*
 gradio
 imgaug
 numpy
 onnxruntime
-opencv-python-headless==4.7.0.68
+opencv-python-headless==4.7.*
 Pillow
-pooch==1.8.0
+pooch==1.8.*
 rich
 sahi
 sphinx-click

@@ -1,4 +1,5 @@
 .DS_Store
+.idea/
 output.*.jpg
 *.log*
 
