@@ -17,4 +17,3 @@ torch
 torchvision
 tqdm
 ultralytics
-wbia-utool
