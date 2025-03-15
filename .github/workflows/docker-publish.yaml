@@ -84,7 +84,7 @@ jobs:
       # Build and push images
       - name: Build Scoutbot
         run: |
-          docker buildx build \
+         DOCKER_BUILDKIT=1 docker buildx build \
               -t wildme/scoutbot:${{ env.IMAGE_TAG }} \
               --platform linux/amd64 \
               --push \
@@ -95,7 +95,7 @@ jobs:
       - name: Also push latest image
         if: ${{ github.event_name == 'push'}}
         run: |
-          docker buildx build \
+         DOCKER_BUILDKIT=1 docker buildx build \
               -t wildme/scoutbot:latest \
               --platform linux/amd64 \
               --push \
