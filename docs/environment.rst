@@ -19,7 +19,7 @@ and configurations.
       The configuration setting for which machine lerning models to use with the AGG.
       Must be one of ``phase1`` or ``mvp``, or their respective aliases as ``old`` or ``new``.
       Defaults to the value of the ``CONFIG`` environment variable.
-   - ``WIC_BATCH_SIZE`` (default: 256)
+   - ``WIC_BATCH_SIZE`` (default: 160)
       The configuration setting for how many tiles to send to the GPU in a single batch during the WIC
       prediction (forward inference).  The LOC model has a fixed batch size (16 for ``phase1`` and
       32 for ``mvp``) and cannot be adjusted.  This setting can be used to control how fast the pipeline
