@@ -7,14 +7,14 @@ gradio
 imgaug
 numpy
 onnxruntime
-opencv-python-headless==4.7.*
+opencv-python-headless==4.7.0.*
 Pillow
 pooch==1.8.*
 rich
-sahi==0.11.*
+sahi==0.11.12
 sphinx-click
 torch
 torchvision
 tqdm
-ultralytics==8.2.*
+ultralytics==8.2.103
 wbia-utool
