@@ -50,6 +50,8 @@ how the entire pipeline can be run on tiles or images, respectively.
     )
 '''
 import cv2
+from PIL import Image
+import numpy as np
 from os.path import exists
 
 import pooch
@@ -235,7 +237,8 @@ def pipeline_v3(
         )
 
     det_result = tile_batched.get_sliced_prediction_batched(
-        cv2.imread(filepath),
+        #cv2.imread(filepath),
+        np.array(Image.open(filepath).convert("RGB")),
         batched_detection_model,
         slice_height=slice_height,
         slice_width=slice_width,

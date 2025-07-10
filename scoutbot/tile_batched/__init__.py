@@ -1,1 +1,1 @@
-from .main import get_sliced_prediction_batched, Yolov8DetectionModel # NOQA
+from .main import get_sliced_prediction_batched, Yolov8DetectionModel, HerdNetDetectionModel # NOQA
