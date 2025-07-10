@@ -14,6 +14,12 @@ from sahi.postprocess.combine import (
     PostprocessPredictions,
 )
 from sahi.models.yolov8 import Yolov8DetectionModel as Yolov8DetectionModelBase
+from sahi.models.base import DetectionModel
+from sahi.utils.cv import read_image_as_pil
+from .herdnet_model import HerdNet # NOQA 
+import torch
+import torchvision.transforms as T
+from tqdm import tqdm
 
 POSTPROCESS_NAME_TO_CLASS = {
     "GREEDYNMM": GreedyNMMPostprocess,
@@ -69,6 +75,203 @@ class Yolov8DetectionModel(Yolov8DetectionModelBase):
         ]
 
         self._original_predictions = prediction_result
+
+
+class HerdNetDetectionModel(DetectionModel):
+    
+    def __init__(  
+        self,  
+        model_path: Optional[str] = None,  
+        device: Optional[str] = None,  
+        confidence_threshold: float = 0.2,  
+        category_mapping: Optional[Dict] = None,  
+        category_remapping: Optional[Dict] = None,  
+        load_at_init: bool = True,  
+        image_size: int = None,
+        batch_size: Optional[int] = None,  
+        dataset: str = 'general',  
+    ):
+        self.dataset = dataset
+        self.batch_size = batch_size or DETECTOR_BATCH_SIZE
+        super().__init__(  
+            model_path=model_path,  
+            device=device,  
+            confidence_threshold=confidence_threshold,  
+            category_mapping=category_mapping,  
+            category_remapping=category_remapping,  
+            load_at_init=load_at_init,  
+            image_size=image_size,  
+        )  
+          
+    def load_model(self):
+        if self.model_path:
+            weights = os.path.join(torch.hub.get_dir(), "checkpoints", self.model_path)
+            checkpoint = torch.load(weights, map_location=torch.device(self.device))        
+            self.CLASS_NAMES = checkpoint["classes"]
+            self.num_classes = len(self.CLASS_NAMES) + 1
+            self.img_mean = checkpoint['mean']
+            self.img_std = checkpoint['std']
+            self.transforms = T.Compose([
+                T.ToTensor(),
+                T.Normalize(mean=self.img_mean, std=self.img_std)
+            ])
+            self.model = HerdNet(num_classes=self.num_classes, pretrained=False)
+            state_dict = checkpoint['model_state_dict']  
+            new_state_dict = {k.replace('model.', ''): v for k, v in state_dict.items() if k.startswith('model.')}
+            self.model.load_state_dict(new_state_dict, strict=True)
+        
+        else:
+            self.model = HerdNet(pretrained=False)
+            self.transforms = T.Compose([
+                T.ToTensor()            
+            ])
+  
+    def perform_inference(self, images: List[np.ndarray], batch_size: Optional[int] = None):
+        """
+        Perform inference using the model and store predictions.
+
+        Args:
+            images (List[np.ndarray]): List of images as numpy arrays for prediction.
+            batch_size (Optional[int]): Batch size for inference (kept for interface compatibility, 
+                                      but HerdNet always uses batch_size=1).
+        
+        Note:
+            HerdNet always processes images with batch_size=1 regardless of the parameter value.
+        """
+        # HerdNet always uses batch_size=1, ignoring the parameter for consistency with the model's requirements
+        all_preds = []
+        counts, locs, labels, scores, dscores = self.model.batch_image_detection(images, 
+                                                    self.transforms, 
+                                                    batch_size=1, 
+                                                    device = self.device)
+        all_preds = []
+        for i in range(len(counts)):
+            if sum(counts[i][0]) == 0:
+                all_preds.append([]) # add empty array to all_preds because there are no detections for this image
+                continue
+            preds_array_i = self.process_lmds_results(counts[i], locs[i], labels[i], scores[i], dscores[i], det_conf_thres=0.2, clf_conf_thres=0.2)
+            all_preds.append(preds_array_i)
+        self._original_predictions = all_preds
+
+    def process_lmds_results(self, counts, locs, labels, scores, dscores, det_conf_thres=0.2, clf_conf_thres=0.2):
+        """
+        Process the results from the Local Maxima Detection Strategy.
+
+        Args:
+            counts (list): 
+                Number of detections for each species.
+            locs (list): 
+                Locations of the detections.
+            labels (list): 
+                Labels of the detections.
+            scores (list): 
+                Scores of the detections.
+            dscores (list): 
+                Detection scores.
+            det_conf_thres (float, optional):
+                Confidence threshold for detections. Defaults to 0.2.
+            clf_conf_thres (float, optional):
+                Confidence threshold for classification. Defaults to 0.2.
+
+        Returns:
+            numpy.ndarray: Processed detection results.
+        """
+        # Flatten the lists since its a single image 
+        counts = counts[0]  
+        locs = locs[0]  
+        labels = labels[0]  
+        scores = scores[0]
+        dscores = dscores[0]  
+
+        total_detections = sum(counts)  
+        preds_array = np.empty((total_detections, 6)) #xyxy, confidence, class_id
+        detection_idx = 0
+        valid_detections_idx = 0
+        # Loop through each species  
+        for specie_idx in range(len(counts)):  
+            count = counts[specie_idx]  
+            if count == 0:  
+                continue  
+            
+            # Get the detections for this species  
+            species_locs = np.array(locs[detection_idx : detection_idx + count])
+            species_locs[:, [0, 1]] = species_locs[:, [1, 0]] # Swap x and y in species_locs (herdnet uses y, x format)
+            species_scores = np.array(scores[detection_idx : detection_idx + count])
+            species_dscores = np.array(dscores[detection_idx : detection_idx + count])
+            species_labels = np.array(labels[detection_idx : detection_idx + count])
+
+            # Apply the confidence threshold
+            valid_detections_by_clf_score = species_scores > clf_conf_thres
+            valid_detections_by_det_score = species_dscores > det_conf_thres
+            valid_detections = np.logical_and(valid_detections_by_clf_score, valid_detections_by_det_score)
+            valid_detections_count = np.sum(valid_detections)
+            valid_detections_idx += valid_detections_count
+            # Fill the preds_array with the valid detections
+            if valid_detections_count > 0:
+                preds_array[valid_detections_idx - valid_detections_count : valid_detections_idx, :2] = species_locs[valid_detections] - 2
+                preds_array[valid_detections_idx - valid_detections_count : valid_detections_idx, 2:4] = species_locs[valid_detections] + 2
+                preds_array[valid_detections_idx - valid_detections_count : valid_detections_idx, 4] = species_scores[valid_detections]
+                preds_array[valid_detections_idx - valid_detections_count : valid_detections_idx, 5] = species_labels[valid_detections]
+            
+            detection_idx += count # Move to the next species 
+        
+        preds_array = preds_array[:valid_detections_idx] # Remove the empty rows
+        
+        return preds_array        
+
+    def _create_object_prediction_list_from_original_predictions(  
+        self,  
+        shift_amount_list: Optional[List[List[int]]] = [[0, 0]],  
+        full_shape_list: Optional[List[List[int]]] = None,  
+    ):  
+        # Convert the predictions from HerdNet into a list of ObjectPrediction  
+        original_predictions = self._original_predictions
+        object_prediction_list_per_image = []
+        for image_ind, image_predictions in enumerate(original_predictions):
+            shift_amount = shift_amount_list[image_ind]
+            full_shape = None if full_shape_list is None else full_shape_list[image_ind]
+            object_prediction_list = []
+            for prediction in image_predictions:
+                x1 = prediction[0]
+                y1 = prediction[1]
+                x2 = prediction[2]
+                y2 = prediction[3]
+                bbox = [x1, y1, x2, y2]
+                score = prediction[4]
+                category_id = int(prediction[5])
+                #category_name = self.category_mapping[str(category_id)]
+                category_name = None # TODO: Get category name from category_mapping
+
+                # fix negative box coords
+                bbox[0] = max(0, bbox[0])
+                bbox[1] = max(0, bbox[1])
+                bbox[2] = max(0, bbox[2])
+                bbox[3] = max(0, bbox[3])
+
+                # fix out of image box coords
+                if full_shape is not None:
+                    bbox[0] = min(full_shape[1], bbox[0])
+                    bbox[1] = min(full_shape[0], bbox[1])
+                    bbox[2] = min(full_shape[1], bbox[2])
+                    bbox[3] = min(full_shape[0], bbox[3])
+
+                if not (bbox[0] < bbox[2]) or not (bbox[1] < bbox[3]):
+                    print(f"ignoring invalid prediction with bbox: {bbox}")
+                    continue
+
+                object_prediction = ObjectPrediction(
+                    bbox=bbox,
+                    category_id=category_id,
+                    score=score,
+                    segmentation=None,
+                    category_name=category_name,
+                    shift_amount=shift_amount,
+                    full_shape=full_shape,
+                )
+                object_prediction_list.append(object_prediction)
+            object_prediction_list_per_image.append(object_prediction_list)
+
+        self._object_prediction_list_per_image = object_prediction_list_per_image
 
 
 class PredictionResult:
@@ -340,7 +543,7 @@ def slice_image(
 
         # create sliced image and append to sliced_image_result
         sliced_image = SlicedImage(
-            image=image_pil_slice, starting_pixel=[slice_bbox[0], slice_bbox[1]]
+            image=image_pil_slice, starting_pixel=[tlx, tly]
         )
         sliced_image_result.add_sliced_image(sliced_image)
 
