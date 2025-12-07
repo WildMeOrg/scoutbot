@@ -49,6 +49,7 @@ how the entire pipeline can be run on tiles or images, respectively.
         # nms_thresh=agg_nms_thresh,  # Optional override of config
     )
 '''
+import os
 import cv2
 from os.path import exists
 
@@ -59,6 +60,14 @@ from scoutbot import utils
 
 log = utils.init_logging()
 QUIET = not utils.VERBOSE
+
+# Base URLs for downloading models and data (can be overridden via environment variables)
+MODEL_BASE_URL = os.getenv(
+    'SCOUTBOT_MODEL_URL', 'https://wildbookiarepository.azureedge.net/models'
+).rstrip('/')
+DATA_BASE_URL = os.getenv(
+    'SCOUTBOT_DATA_URL', 'https://wildbookiarepository.azureedge.net/data'
+).rstrip('/')
 
 
 from scoutbot import agg, loc, tile, wic, tile_batched  # NOQA
@@ -491,7 +500,7 @@ def example():
     )
 
     img_filepath = pooch.retrieve(
-        url=f'https://wildbookiarepository.azureedge.net/data/{TEST_IMAGE}',
+        url=f'{DATA_BASE_URL}/{TEST_IMAGE}',
         known_hash=TEST_IMAGE_HASH,
         progressbar=True,
     )

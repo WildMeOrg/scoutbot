@@ -18,7 +18,7 @@ import pooch
 import torch
 import tqdm
 
-from scoutbot import QUIET, log
+from scoutbot import MODEL_BASE_URL, QUIET, log
 from scoutbot.wic.dataloader import (  # NOQA
     BATCH_SIZE,
     INPUT_SIZE,
@@ -82,7 +82,7 @@ def fetch(pull=False, config=DEFAULT_CONFIG):
         onnx_model = model_path
     else:
         onnx_model = pooch.retrieve(
-            url=f'https://wildbookiarepository.azureedge.net/models/{model_name}',
+            url=f'{MODEL_BASE_URL}/{model_name}',
             known_hash=model_hash,
             progressbar=not QUIET,
         )
