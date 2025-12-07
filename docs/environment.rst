@@ -34,3 +34,9 @@ and configurations.
       A verbosity flag that can be set to turn on debug logging.  Defaults to "not set", which translates
       to no debug logging.  Setting this value to anything will turn on debug logging
       (e.g., ``VERBOSE=1``).
+   - ``SCOUTBOT_MODEL_URL`` (default: https://wildbookiarepository.azureedge.net/models)
+      The base URL for downloading ONNX model files. This allows organizations to host models on their
+      own infrastructure instead of using the default CDN.
+   - ``SCOUTBOT_DATA_URL`` (default: https://wildbookiarepository.azureedge.net/data)
+      The base URL for downloading test data files. This allows organizations to host test data on their
+      own infrastructure instead of using the default CDN.

@@ -10,13 +10,7 @@ hosted on a separate CDN for convenient access and can be fetched by running the
 .. note::
 
    The model download URL can be configured via the ``SCOUTBOT_MODEL_URL`` environment variable.
-   This allows organizations to host models on their own infrastructure. For example:
-
-   .. code-block:: bash
-
-      export SCOUTBOT_MODEL_URL="https://your-cdn.example.com/models"
-
-   Similarly, test data URLs can be configured via ``SCOUTBOT_DATA_URL``.
+   See :doc:`environment` for details.
 
    - :meth:`scoutbot.wic.fetch`
    - :meth:`scoutbot.loc.fetch`
