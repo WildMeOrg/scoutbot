@@ -100,7 +100,7 @@ from scoutbot.loc import CONFIGS as LOC_CONFIGS  # NOQA
 # from tile_batched.models import Yolov8DetectionModel
 # from tile_batched import get_sliced_prediction_batched
 
-VERSION = '0.1.18'
+VERSION = '2.4.2'
 version = VERSION
 __version__ = VERSION
 
