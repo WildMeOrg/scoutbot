@@ -4,11 +4,32 @@ Scoutbot utilities file for common and handy functions.
 '''
 import logging
 import os
+import hashlib
 from logging.handlers import TimedRotatingFileHandler
 
 DAYS = 21
 VERBOSE = os.getenv('VERBOSE', None) is not None
 DEFAULT_LOG_LEVEL = logging.DEBUG if VERBOSE else logging.INFO
+
+
+def check_file_integrity(filepath, expected_hash):
+    """
+    Verifies that the file at filepath matches the expected sha256 hash.
+    Returns True if matches, False otherwise.
+    """
+    if not os.path.exists(filepath):
+        return False
+
+    if expected_hash is None:
+        return True
+
+    sha256_hash = hashlib.sha256()
+    with open(filepath, "rb") as f:
+        # Read and update hash string value in blocks of 4K
+        for byte_block in iter(lambda: f.read(4096), b""):
+            sha256_hash.update(byte_block)
+
+    return sha256_hash.hexdigest() == expected_hash
 
 
 def init_logging():

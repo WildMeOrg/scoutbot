@@ -18,7 +18,7 @@ import pooch
 import torch
 import tqdm
 
-from scoutbot import log
+from scoutbot import log, utils
 from scoutbot.wic.dataloader import (  # NOQA
     BATCH_SIZE,
     INPUT_SIZE,
@@ -78,20 +78,22 @@ def fetch(pull=False, config=DEFAULT_CONFIG):
     model_path = CONFIGS[config]['path']
     model_hash = CONFIGS[config]['hash']
 
-    if not pull and exists(model_path):
-        onnx_model = model_path
-    else:
-        # Import the utility function from parent module
-        from scoutbot import MODEL_BASE_URL, QUIET, get_model_from_source
+    if exists(model_path) and not pull:
+        if utils.check_file_integrity(model_path, model_hash):
+            return model_path
+        else:
+            log.warning(f"Local model found at {model_path} but hash mismatch. Attempting fetch...")
+            # Proceed to download logic below
 
-        onnx_model = get_model_from_source(
-            model_name=model_name,
-            model_hash=model_hash,
-            source_base=MODEL_BASE_URL,
-            use_cache=True
-        )
-        assert exists(onnx_model)
+    from scoutbot import MODEL_BASE_URL, QUIET, get_model_from_source
 
+    onnx_model = get_model_from_source(
+        model_name=model_name,
+        model_hash=model_hash,
+        source_base=MODEL_BASE_URL,
+        use_cache=True
+    )
+    assert exists(onnx_model)
     log.debug(f'WIC Model: {onnx_model}')
 
     return onnx_model

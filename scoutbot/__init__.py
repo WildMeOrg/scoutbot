@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 '''
-The above components must be run in the correct order, but ScoutbBot also offers a single pipeline.
+The above components must be run in the correct order, but Scoutbot also offers a single pipeline.
 
 All of the ML models can be pre-downloaded and fetched in a single call to :func:`scoutbot.fetch` and
 the unified pipeline -- which uses the 4 components correctly -- can be run by the function
@@ -65,12 +65,8 @@ log = utils.init_logging()
 QUIET = not utils.VERBOSE
 
 # Base URLs for downloading models and data (can be overridden via environment variables)
-MODEL_BASE_URL = os.getenv(
-    'SCOUTBOT_MODEL_URL', 'https://wildbookiarepository.azureedge.net/models'
-).rstrip('/')
-DATA_BASE_URL = os.getenv(
-    'SCOUTBOT_DATA_URL', 'https://wildbookiarepository.azureedge.net/data'
-).rstrip('/')
+MODEL_BASE_URL = (os.getenv('SCOUTBOT_MODEL_URL') or 'https://wildbookiarepository.azureedge.net/models').rstrip('/')
+DATA_BASE_URL = (os.getenv('SCOUTBOT_DATA_URL') or 'https://wildbookiarepository.azureedge.net/data').rstrip('/')
 
 # Validate MODEL_BASE_URL
 parsed = urlparse(MODEL_BASE_URL)
@@ -78,12 +74,12 @@ if parsed.scheme in ('http', 'https', 'ftp'):
     # It's a URL, no further validation needed
     pass
 elif parsed.scheme and parsed.scheme not in ('file', ''):
-    log.warning(f"Unrecognized scheme in MODEL_BASE_URL: {parsed.scheme}")
+    raise ValueError(f"Unrecognized scheme in SCOUTBOT_MODEL_URL: {parsed.scheme}")
 else:
     # It's a path - check if it exists
     model_path = Path(MODEL_BASE_URL)
     if not model_path.exists():
-        log.warning(f"Model source path does not exist or is inaccessible: {MODEL_BASE_URL}")
+        raise FileNotFoundError(f"SCOUTBOT_MODEL_URL path does not exist: {MODEL_BASE_URL}")
 
 # Validate DATA_BASE_URL
 parsed = urlparse(DATA_BASE_URL)
@@ -91,12 +87,12 @@ if parsed.scheme in ('http', 'https', 'ftp'):
     # It's a URL, no further validation needed
     pass
 elif parsed.scheme and parsed.scheme not in ('file', ''):
-    log.warning(f"Unrecognized scheme in DATA_BASE_URL: {parsed.scheme}")
+    raise ValueError(f"Unrecognized scheme in DATA_BASE_URL: {parsed.scheme}")
 else:
     # It's a path - check if it exists
     data_path = Path(DATA_BASE_URL)
     if not data_path.exists():
-        log.warning(f"Data source path does not exist or is inaccessible: {DATA_BASE_URL}")
+        raise FileNotFoundError(f"DATA_BASE_URL path does not exist: {DATA_BASE_URL}")
 
 from scoutbot import agg, loc, tile, wic, tile_batched  # NOQA
 from scoutbot.loc import CONFIGS as LOC_CONFIGS  # NOQA
