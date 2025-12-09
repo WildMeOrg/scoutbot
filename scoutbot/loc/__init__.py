@@ -15,7 +15,6 @@ from pathlib import Path
 import cv2
 import numpy as np
 import onnxruntime as ort
-import pooch
 import torch
 import torchvision
 import tqdm
@@ -176,7 +175,7 @@ def fetch(pull=False, config=DEFAULT_CONFIG):
             log.warning(f"Local model found at {model_path} but hash mismatch. Attempting fetch...")
 
     # Import the utility function from parent module
-    from scoutbot import MODEL_BASE_URL, QUIET, get_model_from_source
+    from scoutbot import MODEL_BASE_URL, get_model_from_source
 
     onnx_model = get_model_from_source(
         model_name=model_name,
