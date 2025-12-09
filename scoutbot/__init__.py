@@ -83,7 +83,8 @@ else:
     # It's a path - check if it exists
     model_path = Path(MODEL_BASE_URL)
     if not model_path.exists():
-        log.warning(f"Model source path does not exist: {MODEL_BASE_URL}")
+        log.warning(f"Model source path does not exist or is inaccessible: {MODEL_BASE_URL}")
+        exit()
 
 # Validate DATA_BASE_URL
 parsed = urlparse(DATA_BASE_URL)
@@ -96,7 +97,8 @@ else:
     # It's a path - check if it exists
     data_path = Path(DATA_BASE_URL)
     if not data_path.exists():
-        log.warning(f"Data source path does not exist: {DATA_BASE_URL}")
+        log.warning(f"Data source path does not exist or is inaccessible: {DATA_BASE_URL}")
+        exit()
 
 from scoutbot import agg, loc, tile, wic, tile_batched  # NOQA
 from scoutbot.loc import CONFIGS as LOC_CONFIGS  # NOQA

@@ -1,7 +1,7 @@
 Environment Variables
 ---------------------
 
-The Scoutbot API and CLI have two environment variables (envars) that allow you to configure global settings
+The Scoutbot API and CLI have environment variables (envars) that allow you to configure global settings
 and configurations.
 
    - ``CONFIG`` (default: mvp)
