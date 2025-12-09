@@ -84,7 +84,6 @@ else:
     model_path = Path(MODEL_BASE_URL)
     if not model_path.exists():
         log.warning(f"Model source path does not exist or is inaccessible: {MODEL_BASE_URL}")
-        exit()
 
 # Validate DATA_BASE_URL
 parsed = urlparse(DATA_BASE_URL)
@@ -98,7 +97,6 @@ else:
     data_path = Path(DATA_BASE_URL)
     if not data_path.exists():
         log.warning(f"Data source path does not exist or is inaccessible: {DATA_BASE_URL}")
-        exit()
 
 from scoutbot import agg, loc, tile, wic, tile_batched  # NOQA
 from scoutbot.loc import CONFIGS as LOC_CONFIGS  # NOQA
@@ -141,6 +139,9 @@ def get_resource_from_source(resource_name, resource_hash, source_base, resource
         )
     else:
         # It's a local or network path
+        if source_base.startswith('file://'):
+            source_base = source_base[7:]
+
         source_path = Path(source_base) / resource_name
 
         if not source_path.exists():
@@ -151,6 +152,9 @@ def get_resource_from_source(resource_name, resource_hash, source_base, resource
             cache_dir = Path(pooch.os_cache(f"scoutbot/{resource_type}s"))
             cache_dir.mkdir(parents=True, exist_ok=True)
             cache_path = cache_dir / resource_name
+
+            if source_path.resolve() == cache_path.resolve():
+                return str(source_path)
 
             # Only copy if not already cached or file has changed
             if not cache_path.exists() or os.path.getmtime(source_path) > os.path.getmtime(cache_path):
