@@ -13,7 +13,7 @@ jobs:
       fail-fast: false
       matrix:
         # match ubuntu-22.04
-        python-version: ['3.10']
+        python-version: ["3.9", "3.10", "3.11"]
 
     env:
       OS: ubuntu-22.04
@@ -22,10 +22,26 @@ jobs:
 
     steps:
       # Checkout and env setup
-      - name: Checkout code
-        uses: nschloe/action-cached-lfs-checkout@v1.1.3
+      - uses: actions/checkout@v5
         with:
-          exclude: "scoutbot/*/models/pytorch/"
+          lfs: false  # Skip LFS files - models are fetched from CDN during tests
+          fetch-depth: 0
+
+      # Free up disk space on GitHub runner
+      - name: Free Disk Space
+        run: |
+          echo "Disk usage before cleanup:"
+          df -h
+          
+          # Remove unnecessary large packages
+          sudo rm -rf /usr/share/dotnet
+          sudo rm -rf /opt/ghc
+          sudo rm -rf "/usr/local/share/boost"
+          sudo rm -rf "$AGENT_TOOLSDIRECTORY"
+          sudo apt-get clean
+          
+          echo "Disk usage after cleanup:"
+          df -h
 
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v5

@@ -7,6 +7,11 @@ All of the machine learning models are hosted on GitHub as LFS files.  The two m
 however need those files downloaded to the local machine prior to running inference.  These models are
 hosted on a separate CDN for convenient access and can be fetched by running the following functions:
 
+.. note::
+
+   The model download URL can be configured via the ``SCOUTBOT_MODEL_URL`` environment variable.
+   See :doc:`environment` for details.
+
    - :meth:`scoutbot.wic.fetch`
    - :meth:`scoutbot.loc.fetch`
 

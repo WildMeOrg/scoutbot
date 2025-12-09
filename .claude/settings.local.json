@@ -1,0 +1,10 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(du -sh:*)",
+      "Bash(du:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

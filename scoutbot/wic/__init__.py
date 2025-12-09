@@ -14,11 +14,10 @@ from sys import platform
 
 import numpy as np
 import onnxruntime as ort
-import pooch
 import torch
 import tqdm
 
-from scoutbot import QUIET, log
+from scoutbot import log, utils
 from scoutbot.wic.dataloader import (  # NOQA
     BATCH_SIZE,
     INPUT_SIZE,
@@ -27,7 +26,6 @@ from scoutbot.wic.dataloader import (  # NOQA
 )
 
 PWD = Path(__file__).absolute().parent
-
 
 DEFAULT_CONFIG = os.getenv('WIC_CONFIG', os.getenv('CONFIG', 'mvp')).strip().lower()
 CONFIGS = {
@@ -54,13 +52,13 @@ assert DEFAULT_CONFIG in CONFIGS
 
 def fetch(pull=False, config=DEFAULT_CONFIG):
     """
-    Fetch the WIC ONNX model file from a CDN if it does not exist locally.
+    Fetch the WIC ONNX model file from a CDN, local path, or network path.
 
     This function will throw an AssertionError if the download fails or the
     file otherwise does not exists locally on disk.
 
     Args:
-        pull (bool, optional): If :obj:`True`, force using the downloaded versions
+        pull (bool, optional): If :obj:`True`, force using the downloaded/copied versions
             stored in the local system's cache.  Defaults to :obj:`False`.
         config (str or None, optional): the configuration to use, one of ``phase1``
             or ``mvp``.  Defaults to :obj:`None`.
@@ -70,6 +68,7 @@ def fetch(pull=False, config=DEFAULT_CONFIG):
 
     Raises:
         AssertionError: If the model cannot be fetched.
+        FileNotFoundError: If the model file doesn't exist at the specified path.
     """
     if config is None:
         config = DEFAULT_CONFIG
@@ -78,16 +77,22 @@ def fetch(pull=False, config=DEFAULT_CONFIG):
     model_path = CONFIGS[config]['path']
     model_hash = CONFIGS[config]['hash']
 
-    if not pull and exists(model_path):
-        onnx_model = model_path
-    else:
-        onnx_model = pooch.retrieve(
-            url=f'https://wildbookiarepository.azureedge.net/models/{model_name}',
-            known_hash=model_hash,
-            progressbar=not QUIET,
-        )
-        assert exists(onnx_model)
+    if exists(model_path) and not pull:
+        if utils.check_file_integrity(model_path, model_hash):
+            return model_path
+        else:
+            log.warning(f"Local model found at {model_path} but hash mismatch. Attempting fetch...")
+            # Proceed to download logic below
 
+    from scoutbot import MODEL_BASE_URL, get_model_from_source
+
+    onnx_model = get_model_from_source(
+        model_name=model_name,
+        model_hash=model_hash,
+        source_base=MODEL_BASE_URL,
+        use_cache=True
+    )
+    assert exists(onnx_model)
     log.debug(f'WIC Model: {onnx_model}')
 
     return onnx_model
@@ -154,6 +159,9 @@ def predict(gen):
             - - model configuration
     """
     log.debug('Running WIC inference')
+
+    # Import QUIET from parent module
+    from scoutbot import QUIET
 
     ort_sessions = {}
 

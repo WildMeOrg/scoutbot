@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 '''
-The above components must be run in the correct order, but ScoutbBot also offers a single pipeline.
+The above components must be run in the correct order, but Scoutbot also offers a single pipeline.
 
 All of the ML models can be pre-downloaded and fetched in a single call to :func:`scoutbot.fetch` and
 the unified pipeline -- which uses the 4 components correctly -- can be run by the function
@@ -49,8 +49,12 @@ how the entire pipeline can be run on tiles or images, respectively.
         # nms_thresh=agg_nms_thresh,  # Optional override of config
     )
 '''
+import os
 import cv2
+import shutil
 from os.path import exists
+from urllib.parse import urlparse
+from pathlib import Path
 
 import pooch
 import utool as ut
@@ -60,16 +64,113 @@ from scoutbot import utils
 log = utils.init_logging()
 QUIET = not utils.VERBOSE
 
+# Base URLs for downloading models and data (can be overridden via environment variables)
+MODEL_BASE_URL = (os.getenv('SCOUTBOT_MODEL_URL') or 'https://wildbookiarepository.azureedge.net/models').rstrip('/')
+DATA_BASE_URL = (os.getenv('SCOUTBOT_DATA_URL') or 'https://wildbookiarepository.azureedge.net/data').rstrip('/')
+
+# Validate MODEL_BASE_URL
+parsed = urlparse(MODEL_BASE_URL)
+if parsed.scheme in ('http', 'https', 'ftp'):
+    # It's a URL, no further validation needed
+    pass
+elif parsed.scheme and parsed.scheme not in ('file', ''):
+    raise ValueError(f"Unrecognized scheme in SCOUTBOT_MODEL_URL: {parsed.scheme}")
+else:
+    # It's a path - check if it exists
+    model_path = Path(MODEL_BASE_URL)
+    if not model_path.exists():
+        raise FileNotFoundError(f"SCOUTBOT_MODEL_URL path does not exist: {MODEL_BASE_URL}")
+
+# Validate DATA_BASE_URL
+parsed = urlparse(DATA_BASE_URL)
+if parsed.scheme in ('http', 'https', 'ftp'):
+    # It's a URL, no further validation needed
+    pass
+elif parsed.scheme and parsed.scheme not in ('file', ''):
+    raise ValueError(f"Unrecognized scheme in DATA_BASE_URL: {parsed.scheme}")
+else:
+    # It's a path - check if it exists
+    data_path = Path(DATA_BASE_URL)
+    if not data_path.exists():
+        raise FileNotFoundError(f"DATA_BASE_URL path does not exist: {DATA_BASE_URL}")
 
 from scoutbot import agg, loc, tile, wic, tile_batched  # NOQA
-from scoutbot.loc import CONFIGS as LOC_CONFIGS # NOQA
+from scoutbot.loc import CONFIGS as LOC_CONFIGS  # NOQA
 
 # from tile_batched.models import Yolov8DetectionModel
 # from tile_batched import get_sliced_prediction_batched
 
-VERSION = '0.1.18'
+VERSION = '2.4.2'
 version = VERSION
 __version__ = VERSION
+
+
+def get_resource_from_source(resource_name, resource_hash, source_base, resource_type='model', use_cache=True):
+    """
+    Retrieve a resource (model or data) from URL, local path, or network path.
+
+    Args:
+        resource_name: Name of the resource file
+        resource_hash: Expected hash of the resource (used for URL downloads)
+        source_base: Base URL or path (from MODEL_BASE_URL or DATA_BASE_URL)
+        resource_type: Type of resource ('model' or 'data') for cache organization
+        use_cache: Whether to use cached version for URLs
+
+    Returns:
+        str: Path to the resource file
+
+    Raises:
+        FileNotFoundError: If the resource file doesn't exist at the specified path
+    """
+    # Parse the source to determine if it's a URL or path
+    parsed = urlparse(source_base)
+
+    if parsed.scheme in ('http', 'https', 'ftp'):
+        # It's a URL - use pooch as before
+        resource_url = f'{source_base}/{resource_name}'
+        return pooch.retrieve(
+            url=resource_url,
+            known_hash=resource_hash,
+            progressbar=not QUIET,
+        )
+    else:
+        # It's a local or network path
+        if source_base.startswith('file://'):
+            source_base = source_base[7:]
+
+        source_path = Path(source_base) / resource_name
+
+        if not source_path.exists():
+            raise FileNotFoundError(f"{resource_type.capitalize()} file not found: {source_path}")
+
+        if use_cache:
+            # Copy to cache directory to maintain consistency
+            cache_dir = Path(pooch.os_cache(f"scoutbot/{resource_type}s"))
+            cache_dir.mkdir(parents=True, exist_ok=True)
+            cache_path = cache_dir / resource_name
+
+            if source_path.resolve() == cache_path.resolve():
+                return str(source_path)
+
+            # Only copy if not already cached or file has changed
+            if not cache_path.exists() or os.path.getmtime(source_path) > os.path.getmtime(cache_path):
+                log.debug(f"Copying {resource_type} from {source_path} to cache {cache_path}")
+                shutil.copy2(source_path, cache_path)
+
+            return str(cache_path)
+        else:
+            # Use directly from source
+            return str(source_path)
+
+
+def get_model_from_source(model_name, model_hash, source_base, use_cache=True):
+    """Backward compatibility wrapper for get_resource_from_source"""
+    return get_resource_from_source(model_name, model_hash, source_base, 'model', use_cache)
+
+
+def get_data_from_source(data_name, data_hash, source_base, use_cache=True):
+    """Convenience wrapper for get_resource_from_source for data files"""
+    return get_resource_from_source(data_name, data_hash, source_base, 'data', use_cache)
 
 
 def fetch(pull=False, config=None):
@@ -99,15 +200,15 @@ def fetch(pull=False, config=None):
 
 
 def pipeline(
-    filepath,
-    config=None,
-    backend_device='cuda:0',
-    wic_thresh=wic.CONFIGS[None]['thresh'],
-    loc_thresh=loc.CONFIGS[None]['thresh'],
-    loc_nms_thresh=loc.CONFIGS[None]['nms'],
-    agg_thresh=agg.CONFIGS[None]['thresh'],
-    agg_nms_thresh=agg.CONFIGS[None]['nms'],
-    clean=True,
+        filepath,
+        config=None,
+        backend_device='cuda:0',
+        wic_thresh=wic.CONFIGS[None]['thresh'],
+        loc_thresh=loc.CONFIGS[None]['thresh'],
+        loc_nms_thresh=loc.CONFIGS[None]['nms'],
+        agg_thresh=agg.CONFIGS[None]['thresh'],
+        agg_nms_thresh=agg.CONFIGS[None]['nms'],
+        clean=True,
 ):
     """
     Run the ML pipeline on a given image filepath and return the detections
@@ -193,17 +294,17 @@ def pipeline(
 
 
 def pipeline_v3(
-    filepath,
-    config,
-    batched_detection_model=None,
-    backend_device='cuda:0',
-    loc_thresh=0.45,
-    slice_height=512,
-    slice_width=512,
-    overlap_height_ratio=0.25,
-    overlap_width_ratio=0.25,
-    perform_standard_pred=False,
-    postprocess_class_agnostic=True,
+        filepath,
+        config,
+        batched_detection_model=None,
+        backend_device='cuda:0',
+        loc_thresh=0.45,
+        slice_height=512,
+        slice_width=512,
+        overlap_height_ratio=0.25,
+        overlap_width_ratio=0.25,
+        perform_standard_pred=False,
+        postprocess_class_agnostic=True,
 ):
     """
     Run the ML pipeline on a given image filepath and return the detections
@@ -274,15 +375,15 @@ def pipeline_v3(
 
 
 def batch(
-    filepaths,
-    config=None,
-    backend_device='cuda:0',
-    wic_thresh=wic.CONFIGS[None]['thresh'],
-    loc_thresh=loc.CONFIGS[None]['thresh'],
-    loc_nms_thresh=loc.CONFIGS[None]['nms'],
-    agg_thresh=agg.CONFIGS[None]['thresh'],
-    agg_nms_thresh=agg.CONFIGS[None]['nms'],
-    clean=True,
+        filepaths,
+        config=None,
+        backend_device='cuda:0',
+        wic_thresh=wic.CONFIGS[None]['thresh'],
+        loc_thresh=loc.CONFIGS[None]['thresh'],
+        loc_nms_thresh=loc.CONFIGS[None]['nms'],
+        agg_thresh=agg.CONFIGS[None]['thresh'],
+        agg_nms_thresh=agg.CONFIGS[None]['nms'],
+        clean=True,
 ):
     """
     Run the ML pipeline on a given batch of image filepaths and return the detections
@@ -381,7 +482,7 @@ def batch(
     assert len(loc_tile_grids) == len(loc_outputs)
 
     for filepath, loc_tile_grid, loc_output in zip(
-        loc_tile_img_filepaths, loc_tile_grids, loc_outputs
+            loc_tile_img_filepaths, loc_tile_grids, loc_outputs
     ):
         batch[filepath]['loc']['grids'].append(loc_tile_grid)
         batch[filepath]['loc']['outputs'].append(loc_output)
@@ -420,16 +521,16 @@ def batch(
 
 
 def batch_v3(
-    filepaths,
-    config,
-    backend_device,
-    loc_thresh=0.45,
-    slice_height=512,
-    slice_width=512,
-    overlap_height_ratio=0.25,
-    overlap_width_ratio=0.25,
-    perform_standard_pred=False,
-    postprocess_class_agnostic=True,
+        filepaths,
+        config,
+        backend_device,
+        loc_thresh=0.45,
+        slice_height=512,
+        slice_width=512,
+        overlap_height_ratio=0.25,
+        overlap_width_ratio=0.25,
+        perform_standard_pred=False,
+        postprocess_class_agnostic=True,
 ):
     yolov8_model_path = loc.fetch(config=config)
 
@@ -490,10 +591,11 @@ def example():
         '786a940b062a90961f409539292f09144c3dbdbc6b6faa64c3e764d63d55c988'  # NOQA
     )
 
-    img_filepath = pooch.retrieve(
-        url=f'https://wildbookiarepository.azureedge.net/data/{TEST_IMAGE}',
-        known_hash=TEST_IMAGE_HASH,
-        progressbar=True,
+    img_filepath = get_data_from_source(
+        data_name=TEST_IMAGE,
+        data_hash=TEST_IMAGE_HASH,
+        source_base=DATA_BASE_URL,
+        use_cache=True
     )
     assert exists(img_filepath)
 
