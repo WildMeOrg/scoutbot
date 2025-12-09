@@ -35,8 +35,22 @@ and configurations.
       to no debug logging.  Setting this value to anything will turn on debug logging
       (e.g., ``VERBOSE=1``).
    - ``SCOUTBOT_MODEL_URL`` (default: https://wildbookiarepository.azureedge.net/models)
-      The base URL for downloading ONNX model files. This allows organizations to host models on their
-      own infrastructure instead of using the default CDN.
+      The base URL or path for accessing ONNX model files. This can be:
+
+      * An HTTP/HTTPS URL (e.g., ``https://example.com/models``)
+      * A local file path (e.g., ``/opt/models`` or ``C:\models``)
+      * A network path (e.g., ``//server/share/models`` or ``\\server\share\models``)
+
+      When using file paths, models will be copied to a local cache for consistency.
+      This allows organizations to host models on their own infrastructure, CDN, or
+      local/network storage.
    - ``SCOUTBOT_DATA_URL`` (default: https://wildbookiarepository.azureedge.net/data)
-      The base URL for downloading test data files. This allows organizations to host test data on their
-      own infrastructure instead of using the default CDN.
+      The base URL or path for downloading test data files.
+
+      As with SCOUTBOT_MODEL_URL, this can be:
+      * An HTTP/HTTPS URL or
+      * A local file path or
+      * A network path
+
+      This allows organizations to host test data on their own infrastructure, CDN, or
+      local/network storage.
