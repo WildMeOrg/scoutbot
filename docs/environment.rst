@@ -5,18 +5,18 @@ The Scoutbot API and CLI have environment variables (envars) that allow you to c
 and configurations.
 
    - ``CONFIG`` (default: mvp)
-      The configuration setting for which machine lerning models to use.
+      The configuration setting for which machine learning models to use.
       Must be one of ``phase1`` or ``mvp``, or their respective aliases as ``old`` or ``new``.
    - ``WIC_CONFIG`` (default: not set)
-      The configuration setting for which machine lerning models to use with the WIC.
+      The configuration setting for which machine learning models to use with the WIC.
       Must be one of ``phase1`` or ``mvp``, or their respective aliases as ``old`` or ``new``.
       Defaults to the value of the ``CONFIG`` environment variable.
    - ``LOC_CONFIG`` (default: not set)
-      The configuration setting for which machine lerning models to use with the LOC.
+      The configuration setting for which machine learning models to use with the LOC.
       Must be one of ``phase1`` or ``mvp``, or their respective aliases as ``old`` or ``new``.
       Defaults to the value of the ``CONFIG`` environment variable.
    - ``AGG_CONFIG`` (default: not set)
-      The configuration setting for which machine lerning models to use with the AGG.
+      The configuration setting for which machine learning models to use with the AGG.
       Must be one of ``phase1`` or ``mvp``, or their respective aliases as ``old`` or ``new``.
       Defaults to the value of the ``CONFIG`` environment variable.
    - ``WIC_BATCH_SIZE`` (default: 160)
