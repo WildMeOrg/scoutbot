@@ -13,7 +13,7 @@ Wild Me ScoutBot
 
    Documentation: https://surveytools.github.io/scoutbot-two/
 
-|Tests| |Codecov| |Docker| |ReadTheDocs| |Huggingface|
+|Docker| |ReadTheDocs| |Huggingface|
 
 .. contents:: Quick Links
     :backlinks: none
@@ -184,14 +184,6 @@ Reference `pre-commit's installation instructions <https://pre-commit.com/#insta
 
 The code base has been formatted by `Brunette <https://pypi.org/project/brunette/>`_, which is a fork and more configurable version of `Black <https://black.readthedocs.io/en/stable/>`_.  Furthermore, try to conform to ``PEP8``.  You should set up your preferred editor to use ``flake8`` as its Python linter, but pre-commit will ensure compliance before a git commit is completed.  This will use the ``flake8`` configuration within ``setup.cfg``, which ignores several errors and stylistic considerations.  See the ``setup.cfg`` file for a full and accurate listing of stylistic codes to ignore.
 
-
-.. |Tests| image:: https://github.com/WildMeOrg/scoutbot/actions/workflows/testing.yml/badge.svg?branch=main
-    :target: https://github.com/WildMeOrg/scoutbot/actions/workflows/testing.yml
-    :alt: GitHub CI
-
-.. |Codecov| image:: https://codecov.io/gh/WildMeOrg/scoutbot/branch/main/graph/badge.svg?token=FR6ITMWQNI
-    :target: https://app.codecov.io/gh/WildMeOrg/scoutbot
-    :alt: Codecov
 
 .. |Docker| image:: https://img.shields.io/docker/image-size/wildme/scoutbot/latest
     :target: https://hub.docker.com/r/wildme/scoutbot
