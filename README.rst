@@ -2,7 +2,18 @@
 Wild Me ScoutBot
 ================
 
-|Tests| |Codecov| |Wheel| |Docker| |ReadTheDocs| |Huggingface|
+.. important::
+
+   **This repository is superseded by** `scoutbot-two <https://github.com/SurveyTools/scoutbot-two>`_.
+
+   Development, releases, and support continue in scoutbot-two, maintained by the Overhead Survey
+   Workflow (OSW) team with Wild Me's support. The ``scoutbot`` package on PyPI is now published
+   from scoutbot-two (version 0.5.0 and later); the 0.1.x releases remain installable but are no
+   longer maintained. Docker images are no longer built from this repository.
+
+   Documentation: https://surveytools.github.io/scoutbot-two/
+
+|Docker| |ReadTheDocs| |Huggingface|
 
 .. contents:: Quick Links
     :backlinks: none
@@ -12,9 +23,12 @@ Wild Me ScoutBot
 How to Install
 --------------
 
+``pip install scoutbot`` now installs scoutbot-two (0.5.0 and later). To install the legacy
+version documented here, pin below 0.5:
+
 .. code-block:: bash
 
-    pip install scoutbot
+    pip install "scoutbot<0.5"
 
 or, from source:
 
@@ -93,9 +107,9 @@ How to Build and Deploy
 Docker Hub
 ==========
 
-The application can also be built into a Docker image and is hosted on Docker Hub as ``wildme/scoutbot:latest``.  Any time the ``main`` branch is updated or a tagged release is made (see the PyPI instructions below), an automated GitHub CD action will build and deploy the newest image to Docker Hub automatically.
-
-To do this manually, use the code below:
+Previously built images remain on Docker Hub as ``wildme/scoutbot:latest``, but they are no longer
+built or updated automatically from this repository. To build an image manually from this code,
+use the code below:
 
 .. code-block:: bash
 
@@ -114,34 +128,10 @@ To do this manually, use the code below:
 PyPI
 ====
 
-To upload the latest ScoutBot version to the Python Package Index (PyPI), follow the steps below:
-
-#. Edit ``scoutbot/__init__.py:65`` and set ``VERSION`` to the desired version
-
-    .. code-block:: python
-
-        VERSION = 'X.Y.Z'
-
-
-#. Push any changes and version update to the ``main`` branch on GitHub and wait for CI tests to pass
-
-    .. code-block:: bash
-
-        git pull origin main
-        git commit -am "Release for Version X.Y.Z"
-        git push origin main
-
-
-#. Tag the ``main`` branch as a new release using the `SemVer pattern <https://semver.org/>`_ (e.g., ``vX.Y.Z``)
-
-    .. code-block:: bash
-
-        git pull origin main
-        git tag vX.Y.Z
-        git push origin vX.Y.Z
-
-
-#. Wait for the automated GitHub CD actions to build and push to `PyPI <https://pypi.org/project/scoutbot/>`_ and `Docker Hub <https://hub.docker.com/r/wildme/scoutbot>`_.
+This repository no longer publishes to PyPI. The `scoutbot <https://pypi.org/project/scoutbot/>`_
+project is now owned by the OSW PyPI organization and released from
+`scoutbot-two <https://github.com/SurveyTools/scoutbot-two>`_; see its
+`release process <https://surveytools.github.io/scoutbot-two/development.html#releasing>`_.
 
 Tests and Coverage
 ------------------
@@ -194,18 +184,6 @@ Reference `pre-commit's installation instructions <https://pre-commit.com/#insta
 
 The code base has been formatted by `Brunette <https://pypi.org/project/brunette/>`_, which is a fork and more configurable version of `Black <https://black.readthedocs.io/en/stable/>`_.  Furthermore, try to conform to ``PEP8``.  You should set up your preferred editor to use ``flake8`` as its Python linter, but pre-commit will ensure compliance before a git commit is completed.  This will use the ``flake8`` configuration within ``setup.cfg``, which ignores several errors and stylistic considerations.  See the ``setup.cfg`` file for a full and accurate listing of stylistic codes to ignore.
 
-
-.. |Tests| image:: https://github.com/WildMeOrg/scoutbot/actions/workflows/testing.yml/badge.svg?branch=main
-    :target: https://github.com/WildMeOrg/scoutbot/actions/workflows/testing.yml
-    :alt: GitHub CI
-
-.. |Codecov| image:: https://codecov.io/gh/WildMeOrg/scoutbot/branch/main/graph/badge.svg?token=FR6ITMWQNI
-    :target: https://app.codecov.io/gh/WildMeOrg/scoutbot
-    :alt: Codecov
-
-.. |Wheel| image:: https://github.com/WildMeOrg/scoutbot/actions/workflows/python-publish.yml/badge.svg
-    :target: https://github.com/WildMeOrg/scoutbot/actions/workflows/python-publish.yml
-    :alt: Python Wheel
 
 .. |Docker| image:: https://img.shields.io/docker/image-size/wildme/scoutbot/latest
     :target: https://hub.docker.com/r/wildme/scoutbot
